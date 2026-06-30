@@ -1,31 +1,41 @@
 import { Link } from "react-router-dom";
-import { useState } from "react";
-
+import { useEffect, useState } from "react";
+import { getRoles } from "../services/roleService";
 
 export default function Register() {
-const [formData, setFormData] = useState({
-  fullName: "",
-  email: "",
-  phone: "",
-  password: "",
-  role: "",
-  portfolio: "",
-});
-
-const handleChange = (e) => {
-  setFormData({
-    ...formData,
-    [e.target.name]: e.target.value,
+  const [roles, setRoles] = useState([]);
+  const [formData, setFormData] = useState({
+    fullName: "",
+    email: "",
+    phone: "",
+    password: "",
+    role: "",
+    portfolio: "",
   });
-};
 
-const handleSubmit = (e) => {
-  e.preventDefault();
+  useEffect(() => {
+    async function fetchRoles() {
+      const data = await getRoles();
+      setRoles(data);
+    }
 
-  console.log(formData);
-};
+    fetchRoles();
+  }, []);
 
- return (
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    console.log(formData);
+  };
+
+  return (
     <div className="min-h-screen bg-slate-100 flex items-center justify-center p-6">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8">
         <h1 className="text-3xl font-bold text-center text-slate-800">
@@ -103,9 +113,7 @@ const handleSubmit = (e) => {
           {/* Role */}
 
           <div>
-            <label className="block mb-2 font-medium">
-              Applying For
-            </label>
+            <label className="block mb-2 font-medium">Applying For</label>
 
             <select
               name="role"
@@ -147,10 +155,7 @@ const handleSubmit = (e) => {
 
         <p className="text-center mt-6 text-slate-600">
           Already have an account?{" "}
-          <Link
-            to="/"
-            className="text-blue-600 hover:underline font-medium"
-          >
+          <Link to="/" className="text-blue-600 hover:underline font-medium">
             Login
           </Link>
         </p>
