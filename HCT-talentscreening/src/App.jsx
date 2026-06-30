@@ -1,5 +1,11 @@
 function App() {
-  return <h1>Applicant Screening System</h1>;
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <h1 className="text-5xl font-bold text-blue-600">
+        Tailwind Working 🚀
+      </h1>
+    </div>
+  );
 }
 
 export default App;
