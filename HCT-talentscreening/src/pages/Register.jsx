@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useState } from "react";
 
 const [formData, setFormData] = useState({
   fullName: "",
@@ -14,4 +15,10 @@ const handleChange = (e) => {
     ...formData,
     [e.target.name]: e.target.value,
   });
+};
+
+const handleSubmit = (e) => {
+  e.preventDefault();
+
+  console.log(formData);
 };
