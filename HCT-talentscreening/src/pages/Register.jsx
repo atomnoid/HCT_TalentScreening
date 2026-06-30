@@ -8,3 +8,10 @@ const [formData, setFormData] = useState({
   role: "",
   portfolio: "",
 });
+
+const handleChange = (e) => {
+  setFormData({
+    ...formData,
+    [e.target.name]: e.target.value,
+  });
+};
