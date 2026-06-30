@@ -1,9 +1,10 @@
-import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { getRoles } from "../services/roleService";
 
 export default function Register() {
   const [roles, setRoles] = useState([]);
+
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -23,16 +24,18 @@ export default function Register() {
   }, []);
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
+    setFormData((prev) => ({
+      ...prev,
       [e.target.name]: e.target.value,
-    });
+    }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     console.log(formData);
+
+  
   };
 
   return (
@@ -47,86 +50,79 @@ export default function Register() {
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Full Name */}
           <div>
             <label className="block mb-2 font-medium">Full Name</label>
-
             <input
               type="text"
               name="fullName"
-              placeholder="John Doe"
               value={formData.fullName}
               onChange={handleChange}
-              className="w-full border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="John Doe"
               required
+              className="w-full border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-
-          {/* Email */}
 
           <div>
             <label className="block mb-2 font-medium">Email</label>
-
             <input
               type="email"
               name="email"
-              placeholder="john@gmail.com"
               value={formData.email}
               onChange={handleChange}
-              className="w-full border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="john@example.com"
               required
+              className="w-full border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-
-          {/* Phone */}
 
           <div>
             <label className="block mb-2 font-medium">Phone Number</label>
-
             <input
               type="tel"
               name="phone"
-              placeholder="+91 9876543210"
               value={formData.phone}
               onChange={handleChange}
-              className="w-full border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="+91 9876543210"
               required
+              className="w-full border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-
-          {/* Password */}
 
           <div>
             <label className="block mb-2 font-medium">Password</label>
-
             <input
               type="password"
               name="password"
-              placeholder="********"
               value={formData.password}
               onChange={handleChange}
-              className="w-full border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="********"
               required
+              className="w-full border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
-          {/* Role */}
-
           <div>
-            <label className="block mb-2 font-medium">Applying For</label>
+            <label className="block mb-2 font-medium">
+              Applying For
+            </label>
 
             <select
               name="role"
               value={formData.role}
               onChange={handleChange}
-              className="w-full border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
               required
+              className="w-full border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="">Loading Roles...</option>
+              <option value="">Select a Role</option>
+
+              {roles.map((role) => (
+                <option key={role.id} value={role.id}>
+                  {role.name}
+                </option>
+              ))}
             </select>
           </div>
-
-          {/* Portfolio */}
 
           <div>
             <label className="block mb-2 font-medium">
@@ -136,14 +132,12 @@ export default function Register() {
             <input
               type="url"
               name="portfolio"
-              placeholder="https://linkedin.com/in/username"
               value={formData.portfolio}
               onChange={handleChange}
-              className="w-full border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="https://linkedin.com/in/username"
+              className="w-full border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-
-          {/* Button */}
 
           <button
             type="submit"
@@ -155,7 +149,10 @@ export default function Register() {
 
         <p className="text-center mt-6 text-slate-600">
           Already have an account?{" "}
-          <Link to="/" className="text-blue-600 hover:underline font-medium">
+          <Link
+            to="/"
+            className="text-blue-600 font-medium hover:underline"
+          >
             Login
           </Link>
         </p>
