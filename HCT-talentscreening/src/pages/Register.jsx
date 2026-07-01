@@ -36,9 +36,17 @@ export default function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    console.log(formData);
+    try {
+      await registerUser(formData);
 
-  
+      alert("Registration Successful!");
+
+      navigate("/");
+    } catch (err) {
+      console.error(err);
+
+      alert(err.message);
+    }
   };
 
   return (
@@ -106,9 +114,7 @@ export default function Register() {
           </div>
 
           <div>
-            <label className="block mb-2 font-medium">
-              Applying For
-            </label>
+            <label className="block mb-2 font-medium">Applying For</label>
 
             <select
               name="role"
@@ -152,10 +158,7 @@ export default function Register() {
 
         <p className="text-center mt-6 text-slate-600">
           Already have an account?{" "}
-          <Link
-            to="/"
-            className="text-blue-600 font-medium hover:underline"
-          >
+          <Link to="/" className="text-blue-600 font-medium hover:underline">
             Login
           </Link>
         </p>
