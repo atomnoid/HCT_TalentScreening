@@ -4,12 +4,12 @@ export async function getRoles() {
   const { data, error } = await supabase
     .from("roles")
     .select("*")
-    .order("name");
+    .order("name", { ascending: true });
 
   if (error) {
-    console.error(error);
+    console.error("Failed to fetch roles:", error);
     return [];
   }
 
-  return data;
+  return data ?? [];
 }
