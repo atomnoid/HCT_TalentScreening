@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { getRoles } from "../services/roleService";
 import { registerUser } from "../services/authService";
-import { useNavigate } from "react-router-dom";
 
 export default function Register() {
-  const [roles, setRoles] = useState([]);
   const navigate = useNavigate();
+
+  const [roles, setRoles] = useState([]);
+  const [loadingRoles, setLoadingRoles] = useState(true);
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -18,13 +19,17 @@ export default function Register() {
   });
 
   useEffect(() => {
-    async function fetchRoles() {
+  async function fetchRoles() {
+    try {
       const data = await getRoles();
       setRoles(data);
+    } catch (err) {
+      console.error(err);
     }
+  }
 
-    fetchRoles();
-  }, []);
+  fetchRoles();
+}, []);
 
   const handleChange = (e) => {
     setFormData((prev) => ({
@@ -44,7 +49,6 @@ export default function Register() {
       navigate("/");
     } catch (err) {
       console.error(err);
-
       alert(err.message);
     }
   };
@@ -123,7 +127,9 @@ export default function Register() {
               required
               className="w-full border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="">Select a Role</option>
+              <option value="">
+                {loadingRoles ? "Loading roles..." : "Select a Role"}
+              </option>
 
               {roles.map((role) => (
                 <option key={role.id} value={role.id}>
