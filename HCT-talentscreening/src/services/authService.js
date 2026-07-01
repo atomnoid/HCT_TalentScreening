@@ -26,8 +26,8 @@ export async function registerUser(formData) {
       email: formData.email,
       full_name: formData.fullName,
       phone: formData.phone,
-      portfolio: formData.portfolio,
-      role_id: formData.role,
+      portfolio_url: formData.portfolio,
+      application_role_id: formData.role,
       app_role: "applicant",
     });
 
