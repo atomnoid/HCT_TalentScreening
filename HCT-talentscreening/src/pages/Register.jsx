@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 
 export default function Register() {
   const [roles, setRoles] = useState([]);
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     fullName: "",
