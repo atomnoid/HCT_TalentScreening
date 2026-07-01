@@ -2,11 +2,13 @@ import { supabase } from "../lib/supabase";
 
 export async function registerUser(formData) {
   // 1. Create Auth User
-  const { data: authData, error: authError } =
-    await supabase.auth.signUp({
-      email: formData.email,
-      password: formData.password,
-    });
+  const { data: authData, error: authError } = await supabase.auth.signUp({
+    email: formData.email,
+    password: formData.password,
+  });
+  console.log(authData);
+  console.log(authData.session);
+  console.log(authData.user);
 
   if (authError) {
     throw authError;
@@ -19,17 +21,15 @@ export async function registerUser(formData) {
   }
 
   // 2. Create Profile
-  const { error: profileError } = await supabase
-    .from("profiles")
-    .insert({
-      id: user.id,
-      email: formData.email,
-      full_name: formData.fullName,
-      phone: formData.phone,
-      portfolio_url: formData.portfolio,
-      application_role_id: formData.role,
-      app_role: "applicant",
-    });
+  const { error: profileError } = await supabase.from("profiles").insert({
+    id: user.id,
+    email: formData.email,
+    full_name: formData.fullName,
+    phone: formData.phone,
+    portfolio_url: formData.portfolio,
+    application_role_id: formData.role,
+    app_role: "applicant",
+  });
 
   if (profileError) {
     throw profileError;
