@@ -7,7 +7,7 @@ export async function getRoles() {
     .order("name");
 
   if (error) {
-    console.error("Error fetching roles:", error);
+    console.error(error);
     return [];
   }
 
