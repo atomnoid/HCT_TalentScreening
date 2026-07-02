@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getCurrentProfile, logoutUser } from "../services/authService";
+import { getSubmissionByApplicant } from "../services/submissionService";
 
 export default function ApplicantDashboard() {
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
+  const [submission, setSubmission] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -13,6 +15,9 @@ export default function ApplicantDashboard() {
       try {
         const profileData = await getCurrentProfile();
         setProfile(profileData);
+
+        const existingSubmission = await getSubmissionByApplicant(profileData.id);
+        setSubmission(existingSubmission);
       } catch (err) {
         console.error(err);
         setError(err.message || "Unable to load profile.");
@@ -61,9 +66,14 @@ export default function ApplicantDashboard() {
               <button
                 type="button"
                 onClick={handleStartQuiz}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold transition"
+                disabled={Boolean(submission)}
+                className={`w-full py-3 rounded-lg font-semibold transition ${
+                  submission
+                    ? "bg-slate-300 text-slate-600 cursor-not-allowed"
+                    : "bg-blue-600 hover:bg-blue-700 text-white"
+                }`}
               >
-                Start Quiz
+                {submission ? "Quiz Already Submitted" : "Start Quiz"}
               </button>
               <button
                 type="button"
