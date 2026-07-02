@@ -13,7 +13,7 @@ const defaultQuestionForm = {
   option_b: "",
   option_c: "",
   option_d: "",
-  correct_answer: "A",
+  correct_option: "A",
 };
 
 export default function ManageQuestions() {
@@ -114,7 +114,7 @@ export default function ManageQuestions() {
       option_b: question.option_b,
       option_c: question.option_c,
       option_d: question.option_d,
-      correct_answer: question.correct_answer,
+      correct_option: question.correct_option,
     });
     setError("");
   };
@@ -239,8 +239,8 @@ export default function ManageQuestions() {
                 <div>
                   <label className="block text-sm font-medium text-slate-700">Correct Answer</label>
                   <select
-                    name="correct_answer"
-                    value={questionForm.correct_answer}
+                    name="correct_option"
+                    value={questionForm.correct_option}
                     onChange={handleChange}
                     required
                     className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
@@ -303,7 +303,7 @@ export default function ManageQuestions() {
                       <td className="border-b px-4 py-3">{question.option_b}</td>
                       <td className="border-b px-4 py-3">{question.option_c}</td>
                       <td className="border-b px-4 py-3">{question.option_d}</td>
-                      <td className="border-b px-4 py-3">{question.correct_answer}</td>
+                      <td className="border-b px-4 py-3">{question.correct_option}</td>
                       <td className="border-b px-4 py-3">
                         <div className="flex gap-2">
                           <button
