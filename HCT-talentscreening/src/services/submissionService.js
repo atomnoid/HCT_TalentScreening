@@ -21,7 +21,7 @@ export async function getSubmissions() {
     .select(
       `*, profiles(full_name, email), roles(name)`
     )
-    .order("created_at", { ascending: false });
+    .order("submitted_at", { ascending: false });
 
   if (error) {
     throw error;
