@@ -66,7 +66,7 @@ export default function Quiz() {
         total_questions: totalQuestions,
       });
 
-      navigate("/results");
+      navigate("/thank-you");
     } catch (err) {
       console.error(err);
       setError(err.message || "Unable to submit quiz.");
