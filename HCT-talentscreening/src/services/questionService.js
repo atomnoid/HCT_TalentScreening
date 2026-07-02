@@ -14,6 +14,36 @@ export async function getRoles() {
   return data ?? [];
 }
 
+export async function getApplicantProfile() {
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+
+  if (userError) {
+    throw userError;
+  }
+
+  const user = userData?.user;
+
+  if (!user) {
+    throw new Error("No active session.");
+  }
+
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single();
+
+  if (profileError) {
+    throw profileError;
+  }
+
+  if (!profile) {
+    throw new Error("Profile not found.");
+  }
+
+  return profile;
+}
+
 export async function getQuestionsByRole(roleId) {
   const { data, error } = await supabase
     .from("questions")
