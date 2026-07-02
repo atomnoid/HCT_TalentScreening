@@ -43,7 +43,7 @@ export async function getApplicantProfile() {
 
   return profile;
 }
-
+// crud -
 export async function getQuestionsByRole(roleId) {
   const { data, error } = await supabase
     .from("questions")
