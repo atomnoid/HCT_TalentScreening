@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getApplicantProfile, getQuestionsByRole } from "../services/questionService";
+import {
+  getApplicantProfile,
+  getQuestionsByRole,
+} from "../services/questionService";
 import { createSubmission } from "../services/submissionService";
 
 export default function Quiz() {
@@ -16,8 +19,14 @@ export default function Quiz() {
       try {
         const profileData = await getApplicantProfile();
         setProfile(profileData);
+        console.log("Profile Data:", profileData);
+        console.log("Application Role ID:", profileData.application_role_id);
 
-        const questionData = await getQuestionsByRole(profileData.application_role_id);
+        const questionData = await getQuestionsByRole(
+          profileData.application_role_id,
+        );
+
+
         setQuestions(questionData);
       } catch (err) {
         console.error(err);
@@ -84,16 +93,24 @@ export default function Quiz() {
     <div className="min-h-screen bg-slate-100 p-6">
       <div className="mx-auto max-w-5xl bg-white rounded-2xl shadow p-6">
         <h1 className="text-2xl font-bold text-slate-800">Quiz</h1>
-        <p className="mt-2 text-slate-600">Role: {profile?.application_role_id}</p>
+        <p className="mt-2 text-slate-600">
+          Role: {profile?.application_role_id}
+        </p>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-6">
           {questions.map((question, index) => (
-            <div key={question.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
-              <p className="font-semibold text-slate-800">{index + 1}. {question.question}</p>
+            <div
+              key={question.id}
+              className="rounded-2xl border border-slate-200 bg-slate-50 p-5"
+            >
+              <p className="font-semibold text-slate-800">
+                {index + 1}. {question.question}
+              </p>
 
               <div className="mt-4 grid gap-3">
-                {['A', 'B', 'C', 'D'].map((optionKey) => {
-                  const optionValue = question[`option_${optionKey.toLowerCase()}`];
+                {["A", "B", "C", "D"].map((optionKey) => {
+                  const optionValue =
+                    question[`option_${optionKey.toLowerCase()}`];
                   return (
                     <label
                       key={optionKey}
@@ -104,7 +121,9 @@ export default function Quiz() {
                         name={`question-${question.id}`}
                         value={optionKey}
                         checked={answers[question.id] === optionKey}
-                        onChange={() => handleAnswerChange(question.id, optionKey)}
+                        onChange={() =>
+                          handleAnswerChange(question.id, optionKey)
+                        }
                         className="h-4 w-4 text-blue-600"
                       />
                       <span className="font-medium">{optionKey}.</span>
