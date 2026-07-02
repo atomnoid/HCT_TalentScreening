@@ -45,11 +45,16 @@ export async function getApplicantProfile() {
 }
 // crud -
 export async function getQuestionsByRole(roleId) {
+  console.log("Searching Questions For Role:", roleId);
+
   const { data, error } = await supabase
     .from("questions")
     .select("*")
     .eq("role_id", roleId)
     .order("question", { ascending: true });
+
+  console.log("Supabase Response:", data);
+  console.log("Supabase Error:", error);
 
   if (error) {
     throw error;
