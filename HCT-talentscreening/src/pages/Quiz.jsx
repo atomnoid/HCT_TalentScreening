@@ -54,7 +54,7 @@ export default function Quiz() {
       let score = 0;
 
       questions.forEach((question) => {
-        if (answers[question.id] === question.correct_answer) {
+        if (answers[question.id] === question.correct_option) {
           score += 1;
         }
       });
