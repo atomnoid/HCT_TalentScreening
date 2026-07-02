@@ -18,9 +18,7 @@ export async function createSubmission(submissionData) {
 export async function getSubmissions() {
   const { data, error } = await supabase
     .from("submissions")
-    .select(
-      `*, profiles(full_name, email), roles(name)`
-    )
+    .select(`*, profiles(full_name, email), roles(name)`)
     .order("submitted_at", { ascending: false });
 
   if (error) {
@@ -28,4 +26,18 @@ export async function getSubmissions() {
   }
 
   return data ?? [];
+}
+
+export async function getSubmissionByApplicant(applicantId) {
+  const { data, error } = await supabase
+    .from("submissions")
+    .select("*")
+    .eq("applicant_id", applicantId)
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  return data ?? null;
 }
