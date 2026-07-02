@@ -22,6 +22,8 @@ export default function Results() {
     loadSubmissions();
   }, []);
 
+
+//  Turns the created-at timestamp into a readable local date/time string.
   const formatDate = (value) => {
     if (!value) return "";
     const date = new Date(value);
