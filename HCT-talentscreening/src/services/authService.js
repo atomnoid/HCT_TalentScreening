@@ -51,7 +51,7 @@ export async function loginUser({ email, password }) {
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("*")
+    .select("*, roles(name)")
     .eq("id", user.id)
     .single();
 
@@ -64,4 +64,45 @@ export async function loginUser({ email, password }) {
   }
 
   return profile;
+}
+
+export async function getCurrentProfile() {
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError) {
+    throw userError;
+  }
+
+  if (!user) {
+    throw new Error("No active session.");
+  }
+
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("*, roles(name)")
+    .eq("id", user.id)
+    .single();
+
+  if (profileError) {
+    throw profileError;
+  }
+
+  if (!profile) {
+    throw new Error("Profile not found.");
+  }
+
+  return profile;
+}
+
+export async function logoutUser() {
+  const { error } = await supabase.auth.signOut();
+
+  if (error) {
+    throw error;
+  }
+
+  return true;
 }
