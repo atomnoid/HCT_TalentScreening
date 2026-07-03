@@ -10,6 +10,7 @@ export default function ApplicantDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  // On mount: load the user's profile and check for an existing submission
   useEffect(() => {
     async function loadProfile() {
       try {
@@ -29,6 +30,7 @@ export default function ApplicantDashboard() {
     loadProfile();
   }, []);
 
+  // Logout and redirect to the login page
   const handleLogout = async () => {
     try {
       await logoutUser();
@@ -39,6 +41,7 @@ export default function ApplicantDashboard() {
     }
   };
 
+  // Navigate to the quiz page when user starts the assessment
   const handleStartQuiz = () => {
     navigate("/quiz");
   };
