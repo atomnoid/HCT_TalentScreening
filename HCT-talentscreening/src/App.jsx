@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
+// Top-level routes for the application. Protected routes use ProtectedRoute wrapper.
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ApplicantDashboard from "./pages/ApplicantDashboard";
