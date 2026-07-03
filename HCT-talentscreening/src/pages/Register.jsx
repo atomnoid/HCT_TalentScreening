@@ -31,6 +31,8 @@ export default function Register() {
   fetchRoles();
 }, []);
 
+  // Fetch roles once on mount to populate the "Applying For" selector
+
   const handleChange = (e) => {
     setFormData((prev) => ({
       ...prev,
@@ -52,6 +54,8 @@ export default function Register() {
       alert(err.message);
     }
   };
+
+  // Register form submit: calls authService.registerUser then redirects to login
 
   return (
     <div className="min-h-screen bg-slate-100 flex items-center justify-center p-6">

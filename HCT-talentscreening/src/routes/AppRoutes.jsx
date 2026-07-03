@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
+// Legacy/alternate route file (not used by default App) kept for reference
 import Login from "../pages/auth/Login";
 import Register from "../pages/auth/Register";
 

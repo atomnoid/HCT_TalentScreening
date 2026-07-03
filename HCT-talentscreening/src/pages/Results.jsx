@@ -23,7 +23,7 @@ export default function Results() {
   }, []);
 
 
-//  Turns the created-at timestamp into a readable local date/time string.
+  // Convert stored timestamp to a human readable local string for display
   const formatDate = (value) => {
     if (!value) return "";
     const date = new Date(value);

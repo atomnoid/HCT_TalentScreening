@@ -1,5 +1,7 @@
+// Supabase client used for all authentication and profile queries
 import { supabase } from "../lib/supabase";
 
+// Register a new auth user and create a profiles row linked to the auth user
 export async function registerUser(formData) {
   const { data: authData, error: authError } = await supabase.auth.signUp({
     email: formData.email,
@@ -33,6 +35,7 @@ export async function registerUser(formData) {
   return user;
 }
 
+// Sign in a user with email/password and return their profile (with role)
 export async function loginUser({ email, password }) {
   const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
     email,
@@ -66,6 +69,7 @@ export async function loginUser({ email, password }) {
   return profile;
 }
 
+// Get the currently authenticated user's profile including role
 export async function getCurrentProfile() {
   const {
     data: { user },
@@ -97,6 +101,7 @@ export async function getCurrentProfile() {
   return profile;
 }
 
+// Sign out the current session
 export async function logoutUser() {
   const { error } = await supabase.auth.signOut();
 

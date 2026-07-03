@@ -1,9 +1,11 @@
 import { useNavigate } from "react-router-dom";
 import { logoutUser } from "../services/authService";
 
+// Simple HR dashboard with four actions: manage roles/questions, view results, logout
 export default function HRDashboard() {
   const navigate = useNavigate();
 
+  // Logout handler reuses the existing authService.logoutUser function
   const handleLogout = async () => {
     try {
       await logoutUser();

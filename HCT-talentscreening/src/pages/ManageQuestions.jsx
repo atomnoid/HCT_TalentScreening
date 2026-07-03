@@ -17,15 +17,23 @@ const defaultQuestionForm = {
 };
 
 export default function ManageQuestions() {
+  // Available roles for the dropdown
   const [roles, setRoles] = useState([]);
+  // Role currently selected for question management
   const [selectedRoleId, setSelectedRoleId] = useState("");
+  // Questions for the selected role
   const [questions, setQuestions] = useState([]);
+  // Controlled form for create/edit question
   const [questionForm, setQuestionForm] = useState(defaultQuestionForm);
+  // Currently editing question id (null when adding)
   const [editingQuestionId, setEditingQuestionId] = useState(null);
+  // Loading states for roles and questions
   const [loadingRoles, setLoadingRoles] = useState(true);
   const [loadingQuestions, setLoadingQuestions] = useState(false);
+  // UI error message
   const [error, setError] = useState("");
 
+  // Load roles once on mount for the role selector
   useEffect(() => {
     async function loadRoles() {
       try {
@@ -106,7 +114,9 @@ export default function ManageQuestions() {
     }
   };
 
+  // Save or update a question for the selected role
   const handleEdit = (question) => {
+    // Populate the form for editing the selected question
     setEditingQuestionId(question.id);
     setQuestionForm({
       question: question.question,
@@ -119,6 +129,7 @@ export default function ManageQuestions() {
     setError("");
   };
 
+  // Delete a question after user confirmation and reload list
   const handleDelete = async (id) => {
     const confirmed = window.confirm("Delete this question?");
 

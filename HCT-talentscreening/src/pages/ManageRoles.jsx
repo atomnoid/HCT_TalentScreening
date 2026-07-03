@@ -2,12 +2,18 @@ import { useEffect, useState } from "react";
 import { createRole, deleteRole, getRoles, updateRole } from "../services/roleService";
 
 export default function ManageRoles() {
+  // List of roles fetched from backend
   const [roles, setRoles] = useState([]);
+  // Loading indicator for initial and refresh fetches
   const [loading, setLoading] = useState(true);
+  // Error message for UI display
   const [error, setError] = useState("");
+  // Controlled form state for create/edit role
   const [formData, setFormData] = useState({ name: "", description: "" });
+  // Currently editing role id (null when creating)
   const [editingRoleId, setEditingRoleId] = useState(null);
 
+  // On mount: load roles from the service
   useEffect(() => {
     async function loadRoles() {
       try {
@@ -37,6 +43,7 @@ export default function ManageRoles() {
     }
   };
 
+  // Controlled input change for the create/edit form
   const handleChange = (e) => {
     setFormData((prev) => ({
       ...prev,
@@ -44,6 +51,7 @@ export default function ManageRoles() {
     }));
   };
 
+  // Submit handler: create a new role or update an existing one
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -63,12 +71,14 @@ export default function ManageRoles() {
     }
   };
 
+  // Prepare the form to edit a selected role
   const handleEdit = (role) => {
     setEditingRoleId(role.id);
     setFormData({ name: role.name, description: role.description || "" });
     setError("");
   };
 
+  // Delete a role with user confirmation and refresh the list
   const handleDelete = async (id) => {
     const confirmed = window.confirm("Delete this role?");
     if (!confirmed) {
@@ -84,6 +94,7 @@ export default function ManageRoles() {
     }
   };
 
+  // Cancel editing and reset form state
   const handleCancelEdit = () => {
     setEditingRoleId(null);
     setFormData({ name: "", description: "" });

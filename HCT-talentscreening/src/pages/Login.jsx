@@ -4,6 +4,7 @@ import { loginUser } from "../services/authService";
 
 export default function Login() {
   const navigate = useNavigate();
+  // Controlled form data for login
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -16,12 +17,15 @@ export default function Login() {
     }));
   };
 
+  // Submit handler calls auth service and redirects based on role
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
       const profile = await loginUser(formData);
 
+      // Redirect user to the appropriate dashboard based on role
       if (profile.app_role === "hr") {
         navigate("/hr");
       } else {

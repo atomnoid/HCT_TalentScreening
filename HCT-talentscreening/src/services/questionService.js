@@ -1,5 +1,7 @@
+// Supabase used for question and role
 import { supabase } from "../lib/supabase";
 
+// fetch roles used in dropdowns and forms
 export async function getRoles() {
   const { data, error } = await supabase
     .from("roles")
@@ -14,6 +16,7 @@ export async function getRoles() {
   return data ?? [];
 }
 
+// Retrieve the currently authenticated user's profile (applicant-facing)
 export async function getApplicantProfile() {
   const { data: userData, error: userError } = await supabase.auth.getUser();
 
@@ -44,6 +47,7 @@ export async function getApplicantProfile() {
   return profile;
 }
 // crud -
+// Fetch question rows for a specific role. Throws on Supabase error.
 export async function getQuestionsByRole(roleId) {
   console.log("Searching Questions For Role:", roleId);
 
@@ -63,6 +67,7 @@ export async function getQuestionsByRole(roleId) {
   return data ?? [];
 }
 
+// Insert a new question row
 export async function createQuestion(questionData) {
   const { data, error } = await supabase.from("questions").insert(questionData).single();
 
@@ -73,6 +78,7 @@ export async function createQuestion(questionData) {
   return data;
 }
 
+// Update an existing question row by id
 export async function updateQuestion(id, questionData) {
   const { data, error } = await supabase
     .from("questions")
@@ -87,6 +93,7 @@ export async function updateQuestion(id, questionData) {
   return data;
 }
 
+// Delete a question by id
 export async function deleteQuestion(id) {
   const { error } = await supabase.from("questions").delete().eq("id", id);
 
