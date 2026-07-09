@@ -1,10 +1,12 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   getApplicantProfile,
   getQuestionsByRole,
 } from "../services/questionService";
 import { createSubmission } from "../services/submissionService";
+
+const QUIZ_DURATION_SECONDS = 15 * 60;
 
 export default function Quiz() {
   const navigate = useNavigate();
@@ -13,6 +15,9 @@ export default function Quiz() {
   const [answers, setAnswers] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [timeLeft, setTimeLeft] = useState(QUIZ_DURATION_SECONDS);
+  const hasSubmittedRef = useRef(false);
+  const timerRef = useRef(null);
 
   useEffect(() => {
     async function loadQuiz() {
@@ -26,7 +31,6 @@ export default function Quiz() {
           profileData.application_role_id,
         );
 
-
         setQuestions(questionData);
       } catch (err) {
         console.error(err);
@@ -39,6 +43,36 @@ export default function Quiz() {
     loadQuiz();
   }, []);
 
+  useEffect(() => {
+    if (loading) {
+      return undefined;
+    }
+
+    timerRef.current = window.setInterval(() => {
+      setTimeLeft((prevTime) => {
+        if (prevTime <= 1) {
+          window.clearInterval(timerRef.current);
+          timerRef.current = null;
+
+          if (!hasSubmittedRef.current) {
+            handleSubmit();
+          }
+
+          return 0;
+        }
+
+        return prevTime - 1;
+      });
+    }, 1000);
+
+    return () => {
+      if (timerRef.current) {
+        window.clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    };
+  }, [loading]);
+
   const handleAnswerChange = (questionId, value) => {
     setAnswers((prev) => ({
       ...prev,
@@ -46,31 +80,54 @@ export default function Quiz() {
     }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = useCallback(
+    async (e) => {
+      if (hasSubmittedRef.current) {
+        return;
+      }
 
-    try {
-      const totalQuestions = questions.length;
-      let score = 0;
+      hasSubmittedRef.current = true;
 
-      questions.forEach((question) => {
-        if (answers[question.id] === question.correct_option) {
-          score += 1;
-        }
-      });
+      if (e?.preventDefault) {
+        e.preventDefault();
+      }
 
-      await createSubmission({
-        applicant_id: profile.id,
-        role_id: profile.application_role_id,
-        score,
-        total_questions: totalQuestions,
-      });
+      if (timerRef.current) {
+        window.clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
 
-      navigate("/thank-you");
-    } catch (err) {
-      console.error(err);
-      setError(err.message || "Unable to submit quiz.");
-    }
+      try {
+        const totalQuestions = questions.length;
+        let score = 0;
+
+        questions.forEach((question) => {
+          if (answers[question.id] === question.correct_option) {
+            score += 1;
+          }
+        });
+
+        await createSubmission({
+          applicant_id: profile.id,
+          role_id: profile.application_role_id,
+          score,
+          total_questions: totalQuestions,
+        });
+
+        navigate("/thank-you");
+      } catch (err) {
+        console.error(err);
+        hasSubmittedRef.current = false;
+        setError(err.message || "Unable to submit quiz.");
+      }
+    },
+    [answers, navigate, profile, questions],
+  );
+
+  const formatTime = (value) => {
+    const minutes = String(Math.floor(value / 60)).padStart(2, "0");
+    const seconds = String(value % 60).padStart(2, "0");
+    return `${minutes}:${seconds}`;
   };
 
   if (loading) {
@@ -92,10 +149,15 @@ export default function Quiz() {
   return (
     <div className="min-h-screen bg-slate-100 p-6">
       <div className="mx-auto max-w-5xl bg-white rounded-2xl shadow p-6">
-        <h1 className="text-2xl font-bold text-slate-800">Quiz</h1>
-        <p className="mt-2 text-slate-600">
-          Role: {profile?.application_role_id}
-        </p>
+        <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+          <div>
+            <p className="text-sm font-semibold text-slate-700">Time Remaining</p>
+            <p className="text-2xl font-bold text-slate-900">{formatTime(timeLeft)}</p>
+          </div>
+          <p className="text-sm text-slate-600">Role: {profile?.application_role_id}</p>
+        </div>
+
+        <h1 className="mt-6 text-2xl font-bold text-slate-800">Quiz</h1>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-6">
           {questions.map((question, index) => (
