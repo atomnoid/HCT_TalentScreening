@@ -43,43 +43,6 @@ export default function Quiz() {
     loadQuiz();
   }, []);
 
-  useEffect(() => {
-    if (loading) {
-      return undefined;
-    }
-
-    timerRef.current = window.setInterval(() => {
-      setTimeLeft((prevTime) => {
-        if (prevTime <= 1) {
-          window.clearInterval(timerRef.current);
-          timerRef.current = null;
-
-          if (!hasSubmittedRef.current) {
-            handleSubmit();
-          }
-
-          return 0;
-        }
-
-        return prevTime - 1;
-      });
-    }, 1000);
-
-    return () => {
-      if (timerRef.current) {
-        window.clearInterval(timerRef.current);
-        timerRef.current = null;
-      }
-    };
-  }, [loading]);
-
-  const handleAnswerChange = (questionId, value) => {
-    setAnswers((prev) => ({
-      ...prev,
-      [questionId]: value,
-    }));
-  };
-
   const handleSubmit = useCallback(
     async (e) => {
       if (hasSubmittedRef.current) {
@@ -123,6 +86,43 @@ export default function Quiz() {
     },
     [answers, navigate, profile, questions],
   );
+
+  useEffect(() => {
+    if (loading) {
+      return undefined;
+    }
+
+    timerRef.current = window.setInterval(() => {
+      setTimeLeft((prevTime) => {
+        if (prevTime <= 1) {
+          window.clearInterval(timerRef.current);
+          timerRef.current = null;
+
+          if (!hasSubmittedRef.current) {
+            handleSubmit();
+          }
+
+          return 0;
+        }
+
+        return prevTime - 1;
+      });
+    }, 1000);
+
+    return () => {
+      if (timerRef.current) {
+        window.clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    };
+  }, [handleSubmit, loading]);
+
+  const handleAnswerChange = (questionId, value) => {
+    setAnswers((prev) => ({
+      ...prev,
+      [questionId]: value,
+    }));
+  };
 
   const formatTime = (value) => {
     const minutes = String(Math.floor(value / 60)).padStart(2, "0");
