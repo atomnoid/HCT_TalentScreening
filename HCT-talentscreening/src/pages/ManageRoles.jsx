@@ -2,18 +2,16 @@ import { useEffect, useState } from "react";
 import { createRole, deleteRole, getRoles, updateRole } from "../services/roleService";
 
 export default function ManageRoles() {
-  // List of roles fetched from backend
   const [roles, setRoles] = useState([]);
-  // Loading indicator for initial and refresh fetches
   const [loading, setLoading] = useState(true);
-  // Error message for UI display
   const [error, setError] = useState("");
-  // Controlled form state for create/edit role
-  const [formData, setFormData] = useState({ name: "", description: "" });
-  // Currently editing role id (null when creating)
+  const [formData, setFormData] = useState({
+    name: "",
+    description: "",
+    quiz_duration_minutes: "15",
+  });
   const [editingRoleId, setEditingRoleId] = useState(null);
 
-  // On mount: load roles from the service
   useEffect(() => {
     async function loadRoles() {
       try {
@@ -43,7 +41,6 @@ export default function ManageRoles() {
     }
   };
 
-  // Controlled input change for the create/edit form
   const handleChange = (e) => {
     setFormData((prev) => ({
       ...prev,
@@ -51,18 +48,30 @@ export default function ManageRoles() {
     }));
   };
 
-  // Submit handler: create a new role or update an existing one
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    const parsedDuration = Number(formData.quiz_duration_minutes);
+
+    if (!Number.isFinite(parsedDuration) || parsedDuration <= 0) {
+      setError("Quiz duration must be a positive number.");
+      return;
+    }
+
     try {
+      const payload = {
+        name: formData.name.trim(),
+        description: formData.description.trim(),
+        quiz_duration_minutes: parsedDuration,
+      };
+
       if (editingRoleId) {
-        await updateRole(editingRoleId, formData);
+        await updateRole(editingRoleId, payload);
       } else {
-        await createRole(formData);
+        await createRole(payload);
       }
 
-      setFormData({ name: "", description: "" });
+      setFormData({ name: "", description: "", quiz_duration_minutes: "15" });
       setEditingRoleId(null);
       await refreshRoles();
     } catch (err) {
@@ -71,14 +80,16 @@ export default function ManageRoles() {
     }
   };
 
-  // Prepare the form to edit a selected role
   const handleEdit = (role) => {
     setEditingRoleId(role.id);
-    setFormData({ name: role.name, description: role.description || "" });
+    setFormData({
+      name: role.name,
+      description: role.description || "",
+      quiz_duration_minutes: role.quiz_duration_minutes ?? "15",
+    });
     setError("");
   };
 
-  // Delete a role with user confirmation and refresh the list
   const handleDelete = async (id) => {
     const confirmed = window.confirm("Delete this role?");
     if (!confirmed) {
@@ -94,10 +105,9 @@ export default function ManageRoles() {
     }
   };
 
-  // Cancel editing and reset form state
   const handleCancelEdit = () => {
     setEditingRoleId(null);
-    setFormData({ name: "", description: "" });
+    setFormData({ name: "", description: "", quiz_duration_minutes: "15" });
     setError("");
   };
 
@@ -106,7 +116,9 @@ export default function ManageRoles() {
       <div className="mx-auto max-w-5xl space-y-6">
         <div className="bg-white rounded-2xl shadow p-6">
           <h1 className="text-2xl font-bold text-slate-800">Manage Roles</h1>
-          <p className="mt-2 text-slate-600">Add, update, or remove roles used by applicants.</p>
+          <p className="mt-2 text-slate-600">
+            Add, update, or remove roles used by applicants.
+          </p>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-[1fr_2fr]">
@@ -139,6 +151,24 @@ export default function ManageRoles() {
                   rows="4"
                   className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700">
+                  Quiz Duration (Minutes)
+                </label>
+                <input
+                  type="number"
+                  name="quiz_duration_minutes"
+                  min="1"
+                  value={formData.quiz_duration_minutes}
+                  onChange={handleChange}
+                  required
+                  className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                />
+                <p className="mt-2 text-sm text-slate-500">
+                  This value controls how long the quiz stays active for this role.
+                </p>
               </div>
 
               <div className="flex gap-3">
@@ -174,6 +204,7 @@ export default function ManageRoles() {
                   <tr>
                     <th className="border-b px-4 py-3 font-medium">Name</th>
                     <th className="border-b px-4 py-3 font-medium">Description</th>
+                    <th className="border-b px-4 py-3 font-medium">Duration</th>
                     <th className="border-b px-4 py-3 font-medium">Actions</th>
                   </tr>
                 </thead>
@@ -182,6 +213,9 @@ export default function ManageRoles() {
                     <tr key={role.id} className="odd:bg-slate-50">
                       <td className="border-b px-4 py-3">{role.name}</td>
                       <td className="border-b px-4 py-3">{role.description}</td>
+                      <td className="border-b px-4 py-3">
+                        {role.quiz_duration_minutes ?? "15"} min
+                      </td>
                       <td className="border-b px-4 py-3">
                         <div className="flex gap-2">
                           <button
