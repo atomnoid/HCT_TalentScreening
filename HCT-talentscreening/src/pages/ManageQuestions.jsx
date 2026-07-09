@@ -4,6 +4,8 @@ import {
   deleteQuestion,
   getQuestionsByRole,
   getRoles,
+  importQuestionsFromPreview,
+  previewQuestionImport,
   updateQuestion,
 } from "../services/questionService";
 
@@ -32,6 +34,14 @@ export default function ManageQuestions() {
   const [loadingQuestions, setLoadingQuestions] = useState(false);
   // UI error message
   const [error, setError] = useState("");
+  const [csvFile, setCsvFile] = useState(null);
+  const [csvFileName, setCsvFileName] = useState("");
+  const [csvPreviewRows, setCsvPreviewRows] = useState([]);
+  const [csvImportSummary, setCsvImportSummary] = useState(null);
+  const [csvCanImport, setCsvCanImport] = useState(false);
+  const [csvError, setCsvError] = useState("");
+  const [csvPreviewing, setCsvPreviewing] = useState(false);
+  const [csvImporting, setCsvImporting] = useState(false);
 
   // Load roles once on mount for the role selector
   useEffect(() => {
@@ -152,6 +162,92 @@ export default function ManageQuestions() {
     setError("");
   };
 
+  const handleCsvFileChange = (e) => {
+    const selectedFile = e.target.files?.[0] ?? null;
+    setCsvFile(selectedFile);
+    setCsvFileName(selectedFile?.name ?? "");
+    setCsvPreviewRows([]);
+    setCsvImportSummary(null);
+    setCsvCanImport(false);
+    setCsvError("");
+  };
+
+  const handlePreviewCsv = async () => {
+    if (!csvFile) {
+      setCsvError("Please select a CSV file first.");
+      return;
+    }
+
+    if (!csvFile.name.toLowerCase().endsWith(".csv")) {
+      setCsvError("Please choose a valid .csv file.");
+      return;
+    }
+
+    setCsvPreviewing(true);
+    setCsvError("");
+
+    try {
+      const preview = await previewQuestionImport(csvFile);
+      setCsvPreviewRows(preview.rows);
+      setCsvImportSummary(preview.summary);
+      setCsvCanImport(preview.canImport);
+
+      if (!preview.canImport) {
+        setCsvError("This CSV contains validation errors. Fix the file and try again.");
+      }
+    } catch (err) {
+      console.error(err);
+      setCsvPreviewRows([]);
+      setCsvImportSummary(null);
+      setCsvCanImport(false);
+      setCsvError(err.message || "Unable to preview the CSV file.");
+    } finally {
+      setCsvPreviewing(false);
+    }
+  };
+
+  const handleImportCsv = async () => {
+    if (!csvPreviewRows.length) {
+      setCsvError("Preview the CSV first before importing.");
+      return;
+    }
+
+    if (!csvCanImport) {
+      setCsvError("This CSV contains validation errors. Fix the file and try again.");
+      return;
+    }
+
+    setCsvImporting(true);
+    setCsvError("");
+
+    try {
+      const result = await importQuestionsFromPreview(csvPreviewRows, csvImportSummary);
+      setCsvImportSummary(result);
+      setCsvCanImport(false);
+      await loadQuestions(selectedRoleId);
+    } catch (err) {
+      console.error(err);
+      setCsvError(err.message || "Unable to import questions.");
+    } finally {
+      setCsvImporting(false);
+    }
+  };
+
+  const handleDownloadSampleCsv = () => {
+    const sampleCsv = [
+      "role,question,option_a,option_b,option_c,option_d,correct_option",
+      "React Developer,What is JSX?,Syntax Extension,Database,Compiler,Language,A",
+    ].join("\n");
+
+    const blob = new Blob([sampleCsv], { type: "text/csv;charset=utf-8;" });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "question-import-sample.csv";
+    link.click();
+    window.URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="min-h-screen bg-slate-100 p-6">
       <div className="mx-auto max-w-6xl space-y-6">
@@ -178,6 +274,132 @@ export default function ManageQuestions() {
                   </option>
                 ))}
               </select>
+            </div>
+
+            <div className="mt-6 border-t border-slate-200 pt-6">
+              <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <h2 className="text-xl font-semibold text-slate-800">Bulk Import Questions</h2>
+                  <p className="mt-1 text-sm text-slate-600">
+                    Upload a CSV file to add multiple questions at once.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleDownloadSampleCsv}
+                  className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                >
+                  Download Sample CSV
+                </button>
+              </div>
+
+              <div className="mt-4 flex flex-col gap-3 md:flex-row md:items-center">
+                <input
+                  type="file"
+                  accept=".csv,text/csv"
+                  onChange={handleCsvFileChange}
+                  className="block w-full text-sm text-slate-600 file:mr-4 file:rounded-full file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-blue-700 hover:file:bg-blue-100"
+                />
+                <button
+                  type="button"
+                  onClick={handlePreviewCsv}
+                  disabled={!csvFile || csvPreviewing}
+                  className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300"
+                >
+                  {csvPreviewing ? "Preparing Preview..." : "Preview CSV"}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleImportCsv}
+                  disabled={!csvPreviewRows.length || !csvCanImport || csvImporting || csvPreviewing}
+                  className="rounded-xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-emerald-300"
+                >
+                  {csvImporting ? "Importing..." : "Import Questions"}
+                </button>
+              </div>
+
+              {csvFileName && <p className="mt-2 text-sm text-slate-500">Selected file: {csvFileName}</p>}
+              {csvError && <p className="mt-3 text-sm text-red-600">{csvError}</p>}
+
+              {csvImportSummary && (
+                <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
+                  <h3 className="font-semibold text-slate-800">Import Summary</h3>
+                  <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    <div className="rounded-lg bg-white p-3 shadow-sm">
+                      <p className="text-xs uppercase tracking-wide text-slate-500">Total Rows</p>
+                      <p className="mt-1 text-lg font-semibold text-slate-800">{csvImportSummary.totalRows}</p>
+                    </div>
+                    <div className="rounded-lg bg-white p-3 shadow-sm">
+                      <p className="text-xs uppercase tracking-wide text-slate-500">Imported</p>
+                      <p className="mt-1 text-lg font-semibold text-slate-800">{csvImportSummary.imported}</p>
+                    </div>
+                    <div className="rounded-lg bg-white p-3 shadow-sm">
+                      <p className="text-xs uppercase tracking-wide text-slate-500">Skipped</p>
+                      <p className="mt-1 text-lg font-semibold text-slate-800">{csvImportSummary.skipped}</p>
+                    </div>
+                    <div className="rounded-lg bg-white p-3 shadow-sm">
+                      <p className="text-xs uppercase tracking-wide text-slate-500">Duplicate</p>
+                      <p className="mt-1 text-lg font-semibold text-slate-800">{csvImportSummary.duplicate}</p>
+                    </div>
+                    <div className="rounded-lg bg-white p-3 shadow-sm">
+                      <p className="text-xs uppercase tracking-wide text-slate-500">Invalid</p>
+                      <p className="mt-1 text-lg font-semibold text-slate-800">{csvImportSummary.invalid}</p>
+                    </div>
+                    <div className="rounded-lg bg-white p-3 shadow-sm">
+                      <p className="text-xs uppercase tracking-wide text-slate-500">Failed</p>
+                      <p className="mt-1 text-lg font-semibold text-slate-800">{csvImportSummary.failed}</p>
+                    </div>
+                  </div>
+                  <p className="mt-3 text-sm text-slate-600">
+                    {csvImportSummary.failed > 0
+                      ? "Validation errors blocked the import. Fix the CSV and try again."
+                      : "The import completed and duplicate rows were skipped."}
+                  </p>
+                </div>
+              )}
+
+              {csvPreviewRows.length > 0 && (
+                <div className="mt-4 overflow-x-auto">
+                  <h3 className="text-sm font-semibold text-slate-700">Preview</h3>
+                  <table className="mt-3 w-full text-left text-sm text-slate-700">
+                    <thead>
+                      <tr>
+                        <th className="border-b px-3 py-2 font-medium">Row</th>
+                        <th className="border-b px-3 py-2 font-medium">Role</th>
+                        <th className="border-b px-3 py-2 font-medium">Question</th>
+                        <th className="border-b px-3 py-2 font-medium">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {csvPreviewRows.map((row) => (
+                        <tr key={row.rowNumber} className="odd:bg-slate-50">
+                          <td className="border-b px-3 py-2">{row.rowNumber}</td>
+                          <td className="border-b px-3 py-2">{row.role}</td>
+                          <td className="border-b px-3 py-2">{row.question}</td>
+                          <td className="border-b px-3 py-2">
+                            <span
+                              className={`rounded-full px-2 py-1 text-xs font-medium ${
+                                row.status === "ready"
+                                  ? "bg-emerald-100 text-emerald-700"
+                                  : row.status === "duplicate"
+                                    ? "bg-amber-100 text-amber-700"
+                                    : "bg-red-100 text-red-700"
+                              }`}
+                            >
+                              {row.status === "ready"
+                                ? "Ready"
+                                : row.status === "duplicate"
+                                  ? "Duplicate"
+                                  : "Invalid"}
+                            </span>
+                            {row.reason && <span className="ml-2 text-xs text-slate-500">{row.reason}</span>}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
 
             <div className="mt-6">
