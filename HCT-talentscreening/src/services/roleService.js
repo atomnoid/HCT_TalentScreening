@@ -16,9 +16,35 @@ export async function getRoles() {
   return data ?? [];
 }
 
+// Fetch a single role by id.
+export async function getRoleById(id) {
+  const { data, error } = await supabase
+    .from("roles")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
 // Create a new role row and return the created object
 export async function createRole(roleData) {
-  const { data, error } = await supabase.from("roles").insert(roleData).single();
+  const normalizedRoleData = {
+    ...roleData,
+    quiz_duration_minutes:
+      roleData.quiz_duration_minutes === undefined || roleData.quiz_duration_minutes === ""
+        ? 15
+        : Number(roleData.quiz_duration_minutes),
+  };
+
+  const { data, error } = await supabase
+    .from("roles")
+    .insert(normalizedRoleData)
+    .single();
 
   if (error) {
     throw error;
@@ -29,9 +55,17 @@ export async function createRole(roleData) {
 
 // Update an existing role by id and return the updated row
 export async function updateRole(id, roleData) {
+  const normalizedRoleData = {
+    ...roleData,
+    quiz_duration_minutes:
+      roleData.quiz_duration_minutes === undefined || roleData.quiz_duration_minutes === ""
+        ? 15
+        : Number(roleData.quiz_duration_minutes),
+  };
+
   const { data, error } = await supabase
     .from("roles")
-    .update(roleData)
+    .update(normalizedRoleData)
     .eq("id", id)
     .single();
 
