@@ -33,10 +33,11 @@ export async function getSubmissions() {
     .order("submitted_at", { ascending: false });
 
   if (error) {
+    console.error(error);
     throw error;
   }
 
-  console.log(data);
+  console.log(JSON.stringify(data, null, 2));
 
   return data ?? [];
 }
