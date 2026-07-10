@@ -20,12 +20,23 @@ export async function createSubmission(submissionData) {
 export async function getSubmissions() {
   const { data, error } = await supabase
     .from("submissions")
-    .select(`*, profiles(full_name, email), roles(name)`)
+    .select(`
+      *,
+      profiles!submissions_applicant_id_fkey(
+        full_name,
+        email
+      ),
+      roles(
+        name
+      )
+    `)
     .order("submitted_at", { ascending: false });
 
   if (error) {
     throw error;
   }
+
+  console.log(data);
 
   return data ?? [];
 }
