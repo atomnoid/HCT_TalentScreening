@@ -98,7 +98,7 @@ export async function getApplicantProfile() {
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("*")
+    .select("*, roles(name)")
     .eq("id", user.id)
     .single();
 
