@@ -61,8 +61,11 @@ export default function Results() {
               </thead>
               <tbody>
                 {submissions.map((submission) => {
-                  const applicantName = submission.profiles?.full_name || "Unknown";
-                  const email = submission.profiles?.email || "Unknown";
+                  const applicantProfile = Array.isArray(submission.profiles)
+                    ? submission.profiles[0]
+                    : submission.profiles;
+                  const applicantName = applicantProfile?.full_name || "Unknown";
+                  const email = applicantProfile?.email || "Unknown";
                   const roleName = submission.roles?.name || "Unknown";
 
                   return (
