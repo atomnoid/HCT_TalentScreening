@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { createRole, deleteRole, getRoles, updateRole } from "../services/roleService";
+import { createRole, deactivateRole, activateRole, getRoles, updateRole } from "../services/roleService";
 
 export default function ManageRoles() {
   const [roles, setRoles] = useState([]);
@@ -90,18 +90,33 @@ export default function ManageRoles() {
     setError("");
   };
 
-  const handleDelete = async (id) => {
-    const confirmed = window.confirm("Delete this role?");
+  const handleDeactivate = async (id) => {
+    const confirmed = window.confirm("Deactivate this role?");
     if (!confirmed) {
       return;
     }
 
     try {
-      await deleteRole(id);
+      await deactivateRole(id);
       await refreshRoles();
     } catch (err) {
       console.error(err);
-      setError(err.message || "Unable to delete role.");
+      setError(err.message || "Unable to deactivate role.");
+    }
+  };
+
+  const handleActivate = async (id) => {
+    const confirmed = window.confirm("Activate this role?");
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      await activateRole(id);
+      await refreshRoles();
+    } catch (err) {
+      console.error(err);
+      setError(err.message || "Unable to activate role.");
     }
   };
 
@@ -205,37 +220,62 @@ export default function ManageRoles() {
                     <th className="border-b px-4 py-3 font-medium">Name</th>
                     <th className="border-b px-4 py-3 font-medium">Description</th>
                     <th className="border-b px-4 py-3 font-medium">Duration</th>
+                    <th className="border-b px-4 py-3 font-medium">Status</th>
                     <th className="border-b px-4 py-3 font-medium">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {roles.map((role) => (
-                    <tr key={role.id} className="odd:bg-slate-50">
-                      <td className="border-b px-4 py-3">{role.name}</td>
-                      <td className="border-b px-4 py-3">{role.description}</td>
-                      <td className="border-b px-4 py-3">
-                        {role.quiz_duration_minutes ?? "15"} min
-                      </td>
-                      <td className="border-b px-4 py-3">
-                        <div className="flex gap-2">
-                          <button
-                            type="button"
-                            onClick={() => handleEdit(role)}
-                            className="rounded-lg bg-blue-600 px-3 py-2 text-white hover:bg-blue-700"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleDelete(role.id)}
-                            className="rounded-lg bg-red-600 px-3 py-2 text-white hover:bg-red-700"
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                  {roles.map((role) => {
+                    const isActive = role.is_active !== false;
+                    return (
+                      <tr key={role.id} className={`odd:bg-slate-50 ${!isActive ? "opacity-60" : ""}`}>
+                        <td className="border-b px-4 py-3 font-medium">{role.name}</td>
+                        <td className="border-b px-4 py-3">{role.description}</td>
+                        <td className="border-b px-4 py-3">
+                          {role.quiz_duration_minutes ?? "15"} min
+                        </td>
+                        <td className="border-b px-4 py-3">
+                          {isActive ? (
+                            <span className="inline-flex items-center rounded-md bg-green-100 px-2 py-1 text-xs font-semibold text-green-700 ring-1 ring-inset ring-green-600/20">
+                              Active
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center rounded-md bg-red-100 px-2 py-1 text-xs font-semibold text-red-700 ring-1 ring-inset ring-red-600/20">
+                              Inactive
+                            </span>
+                          )}
+                        </td>
+                        <td className="border-b px-4 py-3">
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              onClick={() => handleEdit(role)}
+                              className="rounded-lg bg-blue-600 px-3 py-2 text-white hover:bg-blue-700"
+                            >
+                              Edit
+                            </button>
+                            {isActive ? (
+                              <button
+                                type="button"
+                                onClick={() => handleDeactivate(role.id)}
+                                className="rounded-lg bg-yellow-600 px-3 py-2 text-white hover:bg-yellow-700"
+                              >
+                                Deactivate
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => handleActivate(role.id)}
+                                className="rounded-lg bg-emerald-600 px-3 py-2 text-white hover:bg-emerald-700"
+                              >
+                                Activate
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             )}
