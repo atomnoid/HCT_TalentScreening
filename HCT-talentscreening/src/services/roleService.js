@@ -35,6 +35,7 @@ export async function getRoleById(id) {
 export async function createRole(roleData) {
   const normalizedRoleData = {
     ...roleData,
+    is_active: true,
     quiz_duration_minutes:
       roleData.quiz_duration_minutes === undefined || roleData.quiz_duration_minutes === ""
         ? 15
@@ -76,9 +77,26 @@ export async function updateRole(id, roleData) {
   return data;
 }
 
-// Delete a role by id. Throws on error.
-export async function deleteRole(id) {
-  const { error } = await supabase.from("roles").delete().eq("id", id);
+// Deactivate a role by id. Throws on error.
+export async function deactivateRole(id) {
+  const { error } = await supabase
+    .from("roles")
+    .update({ is_active: false })
+    .eq("id", id);
+
+  if (error) {
+    throw error;
+  }
+
+  return true;
+}
+
+// Activate a role by id. Throws on error.
+export async function activateRole(id) {
+  const { error } = await supabase
+    .from("roles")
+    .update({ is_active: true })
+    .eq("id", id);
 
   if (error) {
     throw error;
