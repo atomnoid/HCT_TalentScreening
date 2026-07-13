@@ -21,17 +21,20 @@ export default function Register() {
   });
 
   useEffect(() => {
-  async function fetchRoles() {
-    try {
-      const data = await getRoles();
-      setRoles(data);
-    } catch (err) {
-      console.error(err);
+    async function fetchRoles() {
+      try {
+        const data = await getRoles();
+        // Register page should ONLY display active roles.
+        setRoles(data.filter((role) => role.is_active !== false));
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoadingRoles(false);
+      }
     }
-  }
 
-  fetchRoles();
-}, []);
+    fetchRoles();
+  }, []);
 
   // Fetch roles once on mount to populate the "Applying For" selector
 
