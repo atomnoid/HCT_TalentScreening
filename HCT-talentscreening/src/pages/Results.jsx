@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { FileText, Search } from "lucide-react";
 import EmptyState from "../components/EmptyState";
+import Card from "../components/Card";
+import { TableSkeleton } from "../components/Skeleton";
 import { getSubmissions } from "../services/submissionService";
 
 export default function Results() {
@@ -67,14 +69,14 @@ export default function Results() {
 
   return (
     <div className="space-y-6">
-        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <Card>
           <h1 className="text-2xl font-bold text-slate-800">Quiz Submissions</h1>
           <p className="mt-2 text-slate-600">
             Review all submitted quiz results in one place.
           </p>
-        </div>
+        </Card>
 
-        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <Card>
           <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-end">
             <div className="flex-1">
               <label className="block text-sm font-medium text-slate-700">Search Applicants</label>
@@ -111,7 +113,7 @@ export default function Results() {
           </div>
 
           {loading ? (
-            <p className="text-slate-600">Loading submissions...</p>
+            <TableSkeleton columns={6} rows={5} />
           ) : error ? (
             <p className="text-red-600">{error}</p>
           ) : submissions.length === 0 ? (
@@ -160,7 +162,7 @@ export default function Results() {
             </table>
             </div>
           )}
-        </div>
+        </Card>
     </div>
   );
 }
