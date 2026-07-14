@@ -11,6 +11,7 @@ import ThankYou from "./pages/ThankYou";
 import ManageRoles from "./pages/ManageRoles";
 import ManageQuestions from "./pages/ManageQuestions";
 import ProtectedRoute from "./components/ProtectedRoute";
+import HRLayout from "./components/layout/HRLayout";
 
 function App() {
   return (
@@ -45,37 +46,17 @@ function App() {
         />
 
         <Route
-          path="/hr"
           element={
             <ProtectedRoute requiredRole="hr">
-              <HRDashboard />
+              <HRLayout />
             </ProtectedRoute>
           }
-        />
-        <Route
-          path="/results"
-          element={
-            <ProtectedRoute requiredRole="hr">
-              <Results />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/manage-roles"
-          element={
-            <ProtectedRoute requiredRole="hr">
-              <ManageRoles />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/manage-questions"
-          element={
-            <ProtectedRoute requiredRole="hr">
-              <ManageQuestions />
-            </ProtectedRoute>
-          }
-        />
+        >
+          <Route path="/hr" element={<HRDashboard />} />
+          <Route path="/results" element={<Results />} />
+          <Route path="/manage-roles" element={<ManageRoles />} />
+          <Route path="/manage-questions" element={<ManageQuestions />} />
+        </Route>
       </Routes>
     </BrowserRouter>
   );
