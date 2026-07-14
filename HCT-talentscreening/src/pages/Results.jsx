@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { FileText, Search } from "lucide-react";
+import EmptyState from "../components/EmptyState";
 import { getSubmissions } from "../services/submissionService";
 
 export default function Results() {
@@ -64,16 +66,15 @@ export default function Results() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 p-6">
-      <div className="mx-auto max-w-6xl space-y-6">
-        <div className="bg-white rounded-2xl shadow p-6">
+    <div className="space-y-6">
+        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
           <h1 className="text-2xl font-bold text-slate-800">Quiz Submissions</h1>
           <p className="mt-2 text-slate-600">
             Review all submitted quiz results in one place.
           </p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow p-6 overflow-x-auto">
+        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-end">
             <div className="flex-1">
               <label className="block text-sm font-medium text-slate-700">Search Applicants</label>
@@ -114,12 +115,21 @@ export default function Results() {
           ) : error ? (
             <p className="text-red-600">{error}</p>
           ) : submissions.length === 0 ? (
-            <p className="text-slate-600">No submissions found.</p>
+            <EmptyState
+              icon={FileText}
+              title="No submissions found"
+              description="Submitted quiz results will appear here."
+            />
           ) : filteredSubmissions.length === 0 ? (
-            <p className="text-slate-600">No submissions found.</p>
+            <EmptyState
+              icon={Search}
+              title="No matching submissions"
+              description="Try adjusting your search or role filter."
+            />
           ) : (
-            <table className="min-w-full text-left text-sm text-slate-700">
-              <thead>
+            <div className="overflow-x-auto">
+            <table className="min-w-max w-full text-left text-sm text-slate-700">
+              <thead className="sticky top-0 z-10 bg-white shadow-sm">
                 <tr>
                   <th className="border-b px-4 py-3 font-medium">Applicant Name</th>
                   <th className="border-b px-4 py-3 font-medium">Email</th>
@@ -136,7 +146,7 @@ export default function Results() {
                   const roleName = getRoleName(submission);
 
                   return (
-                    <tr key={submission.id} className="odd:bg-slate-50">
+                    <tr key={submission.id} className="odd:bg-slate-50 hover:bg-slate-100">
                       <td className="border-b px-4 py-4">{applicantName}</td>
                       <td className="border-b px-4 py-4">{email}</td>
                       <td className="border-b px-4 py-4">{roleName}</td>
@@ -148,9 +158,9 @@ export default function Results() {
                 })}
               </tbody>
             </table>
+            </div>
           )}
         </div>
-      </div>
     </div>
   );
 }
