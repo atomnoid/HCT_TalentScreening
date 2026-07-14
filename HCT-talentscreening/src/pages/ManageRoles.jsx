@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
+import { UsersRound } from "lucide-react";
+import EmptyState from "../components/EmptyState";
 import { createRole, deactivateRole, activateRole, getRoles, updateRole } from "../services/roleService";
+import { showError, showSuccess } from "../utils/toast";
 
 export default function ManageRoles() {
   const [roles, setRoles] = useState([]);
@@ -74,9 +77,11 @@ export default function ManageRoles() {
       setFormData({ name: "", description: "", quiz_duration_minutes: "15" });
       setEditingRoleId(null);
       await refreshRoles();
+      showSuccess(editingRoleId ? "Role updated successfully." : "Role created successfully.");
     } catch (err) {
       console.error(err);
       setError(err.message || "Unable to save role.");
+      showError(err.message || "Unable to save role.");
     }
   };
 
@@ -99,9 +104,11 @@ export default function ManageRoles() {
     try {
       await deactivateRole(id);
       await refreshRoles();
+      showSuccess("Role deactivated successfully.");
     } catch (err) {
       console.error(err);
       setError(err.message || "Unable to deactivate role.");
+      showError(err.message || "Unable to deactivate role.");
     }
   };
 
@@ -114,9 +121,11 @@ export default function ManageRoles() {
     try {
       await activateRole(id);
       await refreshRoles();
+      showSuccess("Role activated successfully.");
     } catch (err) {
       console.error(err);
       setError(err.message || "Unable to activate role.");
+      showError(err.message || "Unable to activate role.");
     }
   };
 
@@ -127,9 +136,8 @@ export default function ManageRoles() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 p-6">
-      <div className="mx-auto max-w-5xl space-y-6">
-        <div className="bg-white rounded-2xl shadow p-6">
+    <div className="space-y-6">
+        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
           <h1 className="text-2xl font-bold text-slate-800">Manage Roles</h1>
           <p className="mt-2 text-slate-600">
             Add, update, or remove roles used by applicants.
@@ -137,7 +145,7 @@ export default function ManageRoles() {
         </div>
 
         <div className="grid gap-6 lg:grid-cols-[1fr_2fr]">
-          <div className="bg-white rounded-2xl shadow p-6">
+          <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
             <h2 className="text-xl font-semibold text-slate-800">
               {editingRoleId ? "Edit Role" : "Create Role"}
             </h2>
@@ -206,16 +214,20 @@ export default function ManageRoles() {
             </form>
           </div>
 
-          <div className="bg-white rounded-2xl shadow p-6 overflow-x-auto">
+          <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
             <h2 className="text-xl font-semibold text-slate-800">Role List</h2>
 
             {loading ? (
               <p className="mt-4 text-slate-500">Loading roles...</p>
             ) : roles.length === 0 ? (
-              <p className="mt-4 text-slate-500">No roles found.</p>
+              <EmptyState
+                icon={UsersRound}
+                title="No roles found"
+                description="Create a role to start organizing quizzes and applicants."
+              />
             ) : (
-              <table className="mt-4 w-full text-left text-sm text-slate-700">
-                <thead>
+              <table className="mt-4 min-w-max w-full text-left text-sm text-slate-700">
+                <thead className="sticky top-0 z-10 bg-white shadow-sm">
                   <tr>
                     <th className="border-b px-4 py-3 font-medium">Name</th>
                     <th className="border-b px-4 py-3 font-medium">Description</th>
@@ -228,7 +240,7 @@ export default function ManageRoles() {
                   {roles.map((role) => {
                     const isActive = role.is_active !== false;
                     return (
-                      <tr key={role.id} className={`odd:bg-slate-50 ${!isActive ? "opacity-60" : ""}`}>
+                    <tr key={role.id} className={`odd:bg-slate-50 hover:bg-slate-100 ${!isActive ? "opacity-60" : ""}`}>
                         <td className="border-b px-4 py-3 font-medium">{role.name}</td>
                         <td className="border-b px-4 py-3">{role.description}</td>
                         <td className="border-b px-4 py-3">
@@ -281,7 +293,6 @@ export default function ManageRoles() {
             )}
           </div>
         </div>
-      </div>
     </div>
   );
 }
