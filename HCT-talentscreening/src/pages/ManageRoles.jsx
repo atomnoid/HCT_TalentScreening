@@ -5,6 +5,7 @@ import Card from "../components/Card";
 import LoadingSpinner from "../components/LoadingSpinner";
 import StatusBadge from "../components/StatusBadge";
 import { FormSkeleton, TableSkeleton } from "../components/Skeleton";
+import ConfirmationModal from "../components/ConfirmationModal";
 import { createRole, deactivateRole, activateRole, getRoles, updateRole } from "../services/roleService";
 import { showError, showSuccess } from "../utils/toast";
 
@@ -20,6 +21,7 @@ export default function ManageRoles() {
   const [editingRoleId, setEditingRoleId] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
   const [processingRoleId, setProcessingRoleId] = useState(null);
+  const [confirmation, setConfirmation] = useState(null);
 
   useEffect(() => {
     async function loadRoles() {
@@ -108,10 +110,6 @@ export default function ManageRoles() {
 
   const handleDeactivate = async (id) => {
     if (processingRoleId) return;
-    const confirmed = window.confirm("Deactivate this role?");
-    if (!confirmed) {
-      return;
-    }
 
     setProcessingRoleId(id);
     try {
@@ -124,15 +122,12 @@ export default function ManageRoles() {
       showError(err.message || "Unable to deactivate role.");
     } finally {
       setProcessingRoleId(null);
+      setConfirmation(null);
     }
   };
 
   const handleActivate = async (id) => {
     if (processingRoleId) return;
-    const confirmed = window.confirm("Activate this role?");
-    if (!confirmed) {
-      return;
-    }
 
     setProcessingRoleId(id);
     try {
@@ -145,6 +140,7 @@ export default function ManageRoles() {
       showError(err.message || "Unable to activate role.");
     } finally {
       setProcessingRoleId(null);
+      setConfirmation(null);
     }
   };
 
@@ -283,7 +279,7 @@ export default function ManageRoles() {
                             {isActive ? (
                               <button
                                 type="button"
-                                onClick={() => handleDeactivate(role.id)}
+                                onClick={() => setConfirmation({ action: "deactivate", id: role.id, name: role.name })}
                                 disabled={Boolean(processingRoleId)}
                                 className="rounded-lg bg-yellow-600 px-3 py-2 text-white hover:bg-yellow-700"
                               >
@@ -293,7 +289,7 @@ export default function ManageRoles() {
                             ) : (
                               <button
                                 type="button"
-                                onClick={() => handleActivate(role.id)}
+                                onClick={() => setConfirmation({ action: "activate", id: role.id, name: role.name })}
                                 disabled={Boolean(processingRoleId)}
                                 className="rounded-lg bg-emerald-600 px-3 py-2 text-white hover:bg-emerald-700"
                               >
@@ -311,6 +307,15 @@ export default function ManageRoles() {
             )}
           </Card>
         </div>
+      <ConfirmationModal
+        isOpen={Boolean(confirmation)}
+        title={confirmation?.action === "activate" ? "Activate role" : "Deactivate role"}
+        description={`Are you sure you want to ${confirmation?.action || "update"} ${confirmation?.name || "this role"}?`}
+        confirmLabel={confirmation?.action === "activate" ? "Activate" : "Deactivate"}
+        isConfirming={Boolean(processingRoleId)}
+        onCancel={() => setConfirmation(null)}
+        onConfirm={() => confirmation?.action === "activate" ? handleActivate(confirmation.id) : handleDeactivate(confirmation.id)}
+      />
     </div>
   );
 }
