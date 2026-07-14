@@ -75,8 +75,9 @@ export default function Register() {
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-5">
+          <p className="text-sm text-slate-500"><span className="text-red-600">*</span> Required fields</p>
           <div>
-            <label className="block mb-2 font-medium">Full Name</label>
+            <label className="block mb-2 font-medium">Full Name <span className="text-red-600">*</span></label>
             <input
               type="text"
               name="fullName"
@@ -84,12 +85,13 @@ export default function Register() {
               onChange={handleChange}
               placeholder="John Doe"
               required
-              className="w-full border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              aria-required="true"
+              className="w-full rounded-lg border border-slate-300 p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 invalid:border-red-500 invalid:ring-2 invalid:ring-red-100"
             />
           </div>
 
           <div>
-            <label className="block mb-2 font-medium">Email</label>
+            <label className="block mb-2 font-medium">Email <span className="text-red-600">*</span></label>
             <input
               type="email"
               name="email"
@@ -97,12 +99,13 @@ export default function Register() {
               onChange={handleChange}
               placeholder="john@example.com"
               required
-              className="w-full border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              aria-required="true"
+              className="w-full rounded-lg border border-slate-300 p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 invalid:border-red-500 invalid:ring-2 invalid:ring-red-100"
             />
           </div>
 
           <div>
-            <label className="block mb-2 font-medium">Phone Number</label>
+            <label className="block mb-2 font-medium">Phone Number <span className="text-red-600">*</span></label>
             <input
               type="tel"
               name="phone"
@@ -110,12 +113,13 @@ export default function Register() {
               onChange={handleChange}
               placeholder="+91 9876543210"
               required
-              className="w-full border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              aria-required="true"
+              className="w-full rounded-lg border border-slate-300 p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 invalid:border-red-500 invalid:ring-2 invalid:ring-red-100"
             />
           </div>
 
           <div>
-            <label className="block mb-2 font-medium">Password</label>
+            <label className="block mb-2 font-medium">Password <span className="text-red-600">*</span></label>
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
@@ -124,7 +128,8 @@ export default function Register() {
                 onChange={handleChange}
                 placeholder="********"
                 required
-                className="w-full border rounded-lg p-3 pr-12 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                aria-required="true"
+                className="w-full rounded-lg border border-slate-300 p-3 pr-12 focus:outline-none focus:ring-2 focus:ring-blue-500 invalid:border-red-500 invalid:ring-2 invalid:ring-red-100"
               />
               <button
                 type="button"
@@ -138,14 +143,15 @@ export default function Register() {
           </div>
 
           <div>
-            <label className="block mb-2 font-medium">Applying For</label>
+            <label className="block mb-2 font-medium">Applying For <span className="text-red-600">*</span></label>
 
             <select
               name="role"
               value={formData.role}
               onChange={handleChange}
               required
-              className="w-full border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              aria-required="true"
+              className="w-full rounded-lg border border-slate-300 p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 invalid:border-red-500 invalid:ring-2 invalid:ring-red-100"
             >
               <option value="">
                 {loadingRoles ? "Loading roles..." : "Select a Role"}
