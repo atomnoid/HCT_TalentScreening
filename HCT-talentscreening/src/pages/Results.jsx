@@ -5,6 +5,8 @@ export default function Results() {
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [search, setSearch] = useState("");
+  const [roleFilter, setRoleFilter] = useState("");
 
   useEffect(() => {
     async function loadSubmissions() {
@@ -30,6 +32,37 @@ export default function Results() {
     return date.toLocaleString();
   };
 
+  const getApplicantProfile = (submission) =>
+    Array.isArray(submission.profiles) ? submission.profiles[0] : submission.profiles;
+
+  const getApplicantName = (submission) =>
+    getApplicantProfile(submission)?.full_name || "Unknown";
+
+  const getApplicantEmail = (submission) =>
+    getApplicantProfile(submission)?.email || "Unknown";
+
+  const getRoleName = (submission) => submission.roles?.name || "Unknown";
+
+  const normalizedSearch = search.trim().toLowerCase();
+  const availableRoles = [...new Set(submissions.map(getRoleName))].sort((firstRole, secondRole) =>
+    firstRole.localeCompare(secondRole)
+  );
+  const filteredSubmissions = submissions.filter((submission) => {
+    const applicantName = getApplicantName(submission).toLowerCase();
+    const applicantEmail = getApplicantEmail(submission).toLowerCase();
+    const roleName = getRoleName(submission);
+    const matchesSearch =
+      applicantName.includes(normalizedSearch) || applicantEmail.includes(normalizedSearch);
+    const matchesRole = !roleFilter || roleName.toLowerCase() === roleFilter.toLowerCase();
+
+    return matchesSearch && matchesRole;
+  });
+
+  const handleClearFilters = () => {
+    setSearch("");
+    setRoleFilter("");
+  };
+
   return (
     <div className="min-h-screen bg-slate-100 p-6">
       <div className="mx-auto max-w-6xl space-y-6">
@@ -41,11 +74,48 @@ export default function Results() {
         </div>
 
         <div className="bg-white rounded-2xl shadow p-6 overflow-x-auto">
+          <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-end">
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-slate-700">Search Applicants</label>
+              <input
+                type="search"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search by name or email"
+                className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              />
+            </div>
+            <div className="md:w-56">
+              <label className="block text-sm font-medium text-slate-700">Filter by Role</label>
+              <select
+                value={roleFilter}
+                onChange={(e) => setRoleFilter(e.target.value)}
+                className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              >
+                <option value="">All Roles</option>
+                {availableRoles.map((roleName) => (
+                  <option key={roleName} value={roleName}>
+                    {roleName}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <button
+              type="button"
+              onClick={handleClearFilters}
+              className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+            >
+              Clear Filters
+            </button>
+          </div>
+
           {loading ? (
             <p className="text-slate-600">Loading submissions...</p>
           ) : error ? (
             <p className="text-red-600">{error}</p>
           ) : submissions.length === 0 ? (
+            <p className="text-slate-600">No submissions found.</p>
+          ) : filteredSubmissions.length === 0 ? (
             <p className="text-slate-600">No submissions found.</p>
           ) : (
             <table className="min-w-full text-left text-sm text-slate-700">
@@ -60,13 +130,10 @@ export default function Results() {
                 </tr>
               </thead>
               <tbody>
-                {submissions.map((submission) => {
-                  const applicantProfile = Array.isArray(submission.profiles)
-                    ? submission.profiles[0]
-                    : submission.profiles;
-                  const applicantName = applicantProfile?.full_name || "Unknown";
-                  const email = applicantProfile?.email || "Unknown";
-                  const roleName = submission.roles?.name || "Unknown";
+                {filteredSubmissions.map((submission) => {
+                  const applicantName = getApplicantName(submission);
+                  const email = getApplicantEmail(submission);
+                  const roleName = getRoleName(submission);
 
                   return (
                     <tr key={submission.id} className="odd:bg-slate-50">
