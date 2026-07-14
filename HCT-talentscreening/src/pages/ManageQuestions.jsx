@@ -3,7 +3,7 @@ import {
   createQuestion,
   deleteQuestion,
   deleteQuestionsByIds,
-  getQuestionsByRole,
+  getQuestions,
   getRoles,
   importQuestionsFromPreview,
   previewQuestionImport,
@@ -46,6 +46,8 @@ export default function ManageQuestions() {
   const [selectedQuestionIds, setSelectedQuestionIds] = useState([]);
   const [isDeleting, setIsDeleting] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+  const [questionSearch, setQuestionSearch] = useState("");
+  const [questionRoleFilter, setQuestionRoleFilter] = useState("");
 
   // Load roles once on mount for the role selector
   useEffect(() => {
@@ -64,16 +66,10 @@ export default function ManageQuestions() {
     loadRoles();
   }, []);
 
-  const loadQuestions = async (roleId) => {
-    if (!roleId) {
-      setQuestions([]);
-      setSelectedQuestionIds([]);
-      return;
-    }
-
+  const loadQuestions = async () => {
     setLoadingQuestions(true);
     try {
-      const data = await getQuestionsByRole(roleId);
+      const data = await getQuestions();
       setQuestions(data);
       setSelectedQuestionIds((previousIds) =>
         previousIds.filter((id) => data.some((question) => question.id === id))
@@ -94,7 +90,6 @@ export default function ManageQuestions() {
     setError("");
     setSuccessMessage("");
     setSelectedQuestionIds([]);
-    await loadQuestions(roleId);
   };
 
   const handleChange = (e) => {
@@ -126,7 +121,7 @@ export default function ManageQuestions() {
 
       setQuestionForm(defaultQuestionForm);
       setEditingQuestionId(null);
-      await loadQuestions(selectedRoleId);
+      await loadQuestions();
       setError("");
     } catch (err) {
       console.error(err);
@@ -165,7 +160,7 @@ export default function ManageQuestions() {
     setSuccessMessage("");
     try {
       await deleteQuestion(id);
-      await loadQuestions(selectedRoleId);
+      await loadQuestions();
     } catch (err) {
       console.error(err);
       setError(err.message || "Unable to delete question.");
@@ -173,6 +168,10 @@ export default function ManageQuestions() {
       setIsDeleting(false);
     }
   };
+
+  useEffect(() => {
+    loadQuestions();
+  }, []);
 
   const handleQuestionSelection = (id) => {
     if (isDeleting) {
@@ -192,7 +191,9 @@ export default function ManageQuestions() {
     }
 
     setSelectedQuestionIds((previousIds) =>
-      previousIds.length === questions.length ? [] : questions.map((question) => question.id)
+      allVisibleQuestionsSelected
+        ? previousIds.filter((id) => !visibleQuestionIds.includes(id))
+        : [...new Set([...previousIds, ...visibleQuestionIds])]
     );
   };
 
@@ -223,7 +224,7 @@ export default function ManageQuestions() {
     try {
       await deleteQuestionsByIds(selectedQuestionIds);
       setSelectedQuestionIds([]);
-      await loadQuestions(selectedRoleId);
+      await loadQuestions();
       setSuccessMessage(
         `${count} question${count === 1 ? "" : "s"} deleted successfully.`
       );
@@ -241,8 +242,24 @@ export default function ManageQuestions() {
     setError("");
   };
 
-  const allQuestionsSelected =
-    questions.length > 0 && selectedQuestionIds.length === questions.length;
+  const normalizedQuestionSearch = questionSearch.trim().toLowerCase();
+  const filteredQuestions = questions.filter((question) => {
+    const matchesSearch = question.question
+      .toLowerCase()
+      .includes(normalizedQuestionSearch);
+    const matchesRole = !questionRoleFilter || question.role_id === questionRoleFilter;
+
+    return matchesSearch && matchesRole;
+  });
+  const visibleQuestionIds = filteredQuestions.map((question) => question.id);
+  const allVisibleQuestionsSelected =
+    visibleQuestionIds.length > 0 &&
+    visibleQuestionIds.every((id) => selectedQuestionIds.includes(id));
+
+  const handleClearFilters = () => {
+    setQuestionSearch("");
+    setQuestionRoleFilter("");
+  };
 
   const handleCsvFileChange = (e) => {
     const selectedFile = e.target.files?.[0] ?? null;
@@ -306,7 +323,7 @@ export default function ManageQuestions() {
       const result = await importQuestionsFromPreview(csvPreviewRows, csvImportSummary);
       setCsvImportSummary(result);
       setCsvCanImport(false);
-      await loadQuestions(selectedRoleId);
+      await loadQuestions();
     } catch (err) {
       console.error(err);
       setCsvError(err.message || "Unable to import questions.");
@@ -594,12 +611,50 @@ export default function ManageQuestions() {
 
             {successMessage && <p className="mt-3 text-sm text-emerald-600">{successMessage}</p>}
 
+            <div className="mt-4 flex flex-col gap-3 md:flex-row md:items-end">
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-slate-700">Search Questions</label>
+                <input
+                  type="search"
+                  value={questionSearch}
+                  onChange={(e) => setQuestionSearch(e.target.value)}
+                  disabled={isDeleting}
+                  placeholder="Search question text"
+                  className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                />
+              </div>
+              <div className="md:w-52">
+                <label className="block text-sm font-medium text-slate-700">Filter by Role</label>
+                <select
+                  value={questionRoleFilter}
+                  onChange={(e) => setQuestionRoleFilter(e.target.value)}
+                  disabled={isDeleting}
+                  className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                >
+                  <option value="">All Roles</option>
+                  {roles.map((role) => (
+                    <option key={role.id} value={role.id}>
+                      {role.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <button
+                type="button"
+                onClick={handleClearFilters}
+                disabled={isDeleting}
+                className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Clear Filters
+              </button>
+            </div>
+
             {loadingQuestions ? (
               <p className="mt-4 text-slate-500">Loading questions...</p>
-            ) : !selectedRoleId ? (
-              <p className="mt-4 text-slate-500">Select a role to view questions.</p>
             ) : questions.length === 0 ? (
-              <p className="mt-4 text-slate-500">No questions found for this role.</p>
+              <p className="mt-4 text-slate-500">No questions found.</p>
+            ) : filteredQuestions.length === 0 ? (
+              <p className="mt-4 text-slate-500">No questions found.</p>
             ) : (
               <>
                 <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-slate-50 p-4">
@@ -634,7 +689,7 @@ export default function ManageQuestions() {
                     <th className="border-b px-4 py-3 font-medium">
                       <input
                         type="checkbox"
-                        checked={allQuestionsSelected}
+                        checked={allVisibleQuestionsSelected}
                         onChange={handleSelectAll}
                         disabled={isDeleting || loadingQuestions}
                         aria-label="Select all questions"
@@ -650,7 +705,7 @@ export default function ManageQuestions() {
                   </tr>
                 </thead>
                 <tbody>
-                  {questions.map((question) => (
+                  {filteredQuestions.map((question) => (
                     <tr key={question.id} className="odd:bg-slate-50">
                       <td className="border-b px-4 py-3">
                         <input
