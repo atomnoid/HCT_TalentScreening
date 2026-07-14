@@ -206,8 +206,8 @@ export default function Results() {
           ) : sortedSubmissions.length === 0 ? (
             <EmptyState
               icon={Search}
-              title="No matching submissions"
-              description="Try adjusting your search or role filter."
+              title="No submissions match your search."
+              description="Try changing your search term or selected filter."
             />
           ) : (
             <div className="overflow-x-auto">
