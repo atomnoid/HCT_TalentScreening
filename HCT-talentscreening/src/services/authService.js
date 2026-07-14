@@ -111,3 +111,18 @@ export async function logoutUser() {
 
   return true;
 }
+
+// Fetch all profiles with app_role = 'applicant'
+export async function getApplicants() {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("app_role", "applicant");
+
+  if (error) {
+    throw error;
+  }
+
+  return data ?? [];
+}
+
