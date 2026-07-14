@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { loginUser } from "../services/authService";
+import { showError } from "../utils/toast";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -35,7 +36,7 @@ export default function Login() {
       }
     } catch (err) {
       console.error(err);
-      alert(err.message);
+      showError(err.message || "Unable to log in.");
     }
   };
 
