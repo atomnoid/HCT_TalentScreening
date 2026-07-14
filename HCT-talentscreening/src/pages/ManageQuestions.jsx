@@ -5,6 +5,7 @@ import Card from "../components/Card";
 import LoadingSpinner from "../components/LoadingSpinner";
 import StatusBadge from "../components/StatusBadge";
 import { FormSkeleton, TableSkeleton } from "../components/Skeleton";
+import ConfirmationModal from "../components/ConfirmationModal";
 import {
   createQuestion,
   deleteQuestion,
@@ -54,6 +55,7 @@ export default function ManageQuestions() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [deletingQuestionId, setDeletingQuestionId] = useState(null);
+  const [confirmation, setConfirmation] = useState(null);
   const [successMessage, setSuccessMessage] = useState("");
   const [questionSearch, setQuestionSearch] = useState("");
   const [questionRoleFilter, setQuestionRoleFilter] = useState("");
@@ -168,12 +170,6 @@ export default function ManageQuestions() {
       return;
     }
 
-    const confirmed = window.confirm("Delete this question?");
-
-    if (!confirmed) {
-      return;
-    }
-
     setIsDeleting(true);
     setDeletingQuestionId(id);
     setSuccessMessage("");
@@ -188,6 +184,7 @@ export default function ManageQuestions() {
     } finally {
       setIsDeleting(false);
       setDeletingQuestionId(null);
+      setConfirmation(null);
     }
   };
 
@@ -231,13 +228,6 @@ export default function ManageQuestions() {
     }
 
     const count = selectedQuestionIds.length;
-    const confirmed = window.confirm(
-      `Delete ${count} selected question${count === 1 ? "" : "s"}?`
-    );
-
-    if (!confirmed) {
-      return;
-    }
 
     setIsDeleting(true);
     setError("");
@@ -257,6 +247,7 @@ export default function ManageQuestions() {
       showError(err.message || "Unable to delete selected questions.");
     } finally {
       setIsDeleting(false);
+      setConfirmation(null);
     }
   };
 
@@ -703,7 +694,7 @@ export default function ManageQuestions() {
                     </button>
                     <button
                       type="button"
-                      onClick={handleBulkDelete}
+                      onClick={() => setConfirmation({ action: "bulk-delete", count: selectedQuestionIds.length })}
                       disabled={selectedQuestionIds.length === 0 || isDeleting || loadingQuestions}
                       className="rounded-lg bg-red-600 px-3 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-red-300"
                     >
@@ -765,7 +756,7 @@ export default function ManageQuestions() {
                           </button>
                           <button
                             type="button"
-                            onClick={() => handleDelete(question.id)}
+                            onClick={() => setConfirmation({ action: "delete", id: question.id })}
                             disabled={isDeleting || loadingQuestions}
                             className="rounded-lg bg-red-600 px-3 py-2 text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-red-300"
                           >
@@ -782,6 +773,15 @@ export default function ManageQuestions() {
             )}
           </Card>
         </div>
+      <ConfirmationModal
+        isOpen={Boolean(confirmation)}
+        title={confirmation?.action === "bulk-delete" ? "Delete selected questions" : "Delete question"}
+        description={confirmation?.action === "bulk-delete" ? `Are you sure you want to delete ${confirmation.count} selected question${confirmation.count === 1 ? "" : "s"}?` : "Are you sure you want to delete this question?"}
+        confirmLabel="Delete"
+        isConfirming={isDeleting}
+        onCancel={() => setConfirmation(null)}
+        onConfirm={() => confirmation?.action === "bulk-delete" ? handleBulkDelete() : handleDelete(confirmation?.id)}
+      />
     </div>
   );
 }
