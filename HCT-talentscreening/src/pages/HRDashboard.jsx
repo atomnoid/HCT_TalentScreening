@@ -1,53 +1,38 @@
 import { useNavigate } from "react-router-dom";
-import { logoutUser } from "../services/authService";
 
 // Simple HR dashboard with four actions: manage roles/questions, view results, logout
 export default function HRDashboard() {
   const navigate = useNavigate();
 
-  // Logout handler reuses the existing authService.logoutUser function
-  const handleLogout = async () => {
-    try {
-      await logoutUser();
-      navigate("/");
-    } catch (err) {
-      console.error("Logout error:", err);
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-slate-100 flex items-center justify-center p-6">
-      <div className="bg-white p-12 rounded-lg shadow-md max-w-md w-full">
-        <h1 className="text-3xl font-bold text-slate-900 mb-2">HR Dashboard</h1>
-        <p className="text-slate-600 mb-8">Welcome HR</p>
+    <div className="space-y-6">
+      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 className="text-2xl font-bold text-slate-900">HR Dashboard</h2>
+        <p className="mt-2 text-slate-600">Manage roles, questions, and assessment results.</p>
 
-        <div className="space-y-4">
+        <div className="mt-6 grid gap-3 sm:grid-cols-3">
           <button
+            type="button"
             onClick={() => navigate("/manage-roles")}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded"
+            className="rounded-lg bg-blue-600 px-4 py-3 font-semibold text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           >
             Manage Roles
           </button>
 
           <button
+            type="button"
             onClick={() => navigate("/manage-questions")}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded"
+            className="rounded-lg bg-blue-600 px-4 py-3 font-semibold text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           >
             Manage Questions
           </button>
 
           <button
+            type="button"
             onClick={() => navigate("/results")}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded"
+            className="rounded-lg bg-blue-600 px-4 py-3 font-semibold text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           >
             View Results
-          </button>
-
-          <button
-            onClick={handleLogout}
-            className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-6 rounded"
-          >
-            Logout
           </button>
         </div>
       </div>
