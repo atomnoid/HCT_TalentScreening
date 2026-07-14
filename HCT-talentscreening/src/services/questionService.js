@@ -171,6 +171,17 @@ export async function deleteQuestion(id) {
   return true;
 }
 
+// Delete multiple questions in one request
+export async function deleteQuestionsByIds(ids) {
+  const { error } = await supabase.from("questions").delete().in("id", ids);
+
+  if (error) {
+    throw error;
+  }
+
+  return true;
+}
+
 export async function previewQuestionImport(file) {
   const csvText = await file.text();
   const rows = parseCsvText(csvText);
