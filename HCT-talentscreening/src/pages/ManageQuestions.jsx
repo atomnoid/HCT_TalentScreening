@@ -377,7 +377,7 @@ export default function ManageQuestions() {
           <Card>
             {loadingRoles ? <FormSkeleton fields={6} /> : <>
             <div>
-              <label className="block text-sm font-medium text-slate-700">Select Role</label>
+              <label className="block text-sm font-medium text-slate-700">Select Role <span className="text-red-600">*</span></label>
               <select
                 value={selectedRoleId}
                 onChange={handleRoleChange}
@@ -519,75 +519,82 @@ export default function ManageQuestions() {
               </h2>
 
               {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+              <p className="mt-3 text-sm text-slate-500"><span className="text-red-600">*</span> Required fields</p>
 
               <form onSubmit={handleSubmit} className="mt-6 space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700">Question</label>
+                  <label className="block text-sm font-medium text-slate-700">Question <span className="text-red-600">*</span></label>
                   <textarea
                     name="question"
                     value={questionForm.question}
                     onChange={handleChange}
                     rows="3"
                     required
-                    className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                    aria-required="true"
+                    className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 invalid:border-red-500 invalid:ring-2 invalid:ring-red-100"
                   />
                 </div>
 
                 <div className="grid gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700">Option A</label>
+                    <label className="block text-sm font-medium text-slate-700">Option A <span className="text-red-600">*</span></label>
                     <input
                       type="text"
                       name="option_a"
                       value={questionForm.option_a}
                       onChange={handleChange}
                       required
-                      className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                      aria-required="true"
+                      className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 invalid:border-red-500 invalid:ring-2 invalid:ring-red-100"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700">Option B</label>
+                    <label className="block text-sm font-medium text-slate-700">Option B <span className="text-red-600">*</span></label>
                     <input
                       type="text"
                       name="option_b"
                       value={questionForm.option_b}
                       onChange={handleChange}
                       required
-                      className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                      aria-required="true"
+                      className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 invalid:border-red-500 invalid:ring-2 invalid:ring-red-100"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700">Option C</label>
+                    <label className="block text-sm font-medium text-slate-700">Option C <span className="text-red-600">*</span></label>
                     <input
                       type="text"
                       name="option_c"
                       value={questionForm.option_c}
                       onChange={handleChange}
                       required
-                      className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                      aria-required="true"
+                      className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 invalid:border-red-500 invalid:ring-2 invalid:ring-red-100"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700">Option D</label>
+                    <label className="block text-sm font-medium text-slate-700">Option D <span className="text-red-600">*</span></label>
                     <input
                       type="text"
                       name="option_d"
                       value={questionForm.option_d}
                       onChange={handleChange}
                       required
-                      className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                      aria-required="true"
+                      className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 invalid:border-red-500 invalid:ring-2 invalid:ring-red-100"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700">Correct Answer</label>
+                  <label className="block text-sm font-medium text-slate-700">Correct Answer <span className="text-red-600">*</span></label>
                   <select
                     name="correct_option"
                     value={questionForm.correct_option}
                     onChange={handleChange}
                     required
-                    className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                    aria-required="true"
+                    className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 invalid:border-red-500 invalid:ring-2 invalid:ring-red-100"
                   >
                     <option value="A">A</option>
                     <option value="B">B</option>
