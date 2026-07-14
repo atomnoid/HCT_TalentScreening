@@ -134,6 +134,20 @@ export async function getQuestionsByRole(roleId) {
   return data ?? [];
 }
 
+// Fetch all questions for local search and filtering
+export async function getQuestions() {
+  const { data, error } = await supabase
+    .from("questions")
+    .select("*")
+    .order("question", { ascending: true });
+
+  if (error) {
+    throw error;
+  }
+
+  return data ?? [];
+}
+
 // Insert a new question row
 export async function createQuestion(questionData) {
   const { data, error } = await supabase.from("questions").insert(questionData).single();
