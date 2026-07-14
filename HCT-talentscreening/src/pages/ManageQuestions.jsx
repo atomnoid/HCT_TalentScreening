@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import { ClipboardList, Search } from "lucide-react";
 import EmptyState from "../components/EmptyState";
+import Card from "../components/Card";
+import LoadingSpinner from "../components/LoadingSpinner";
+import StatusBadge from "../components/StatusBadge";
+import { FormSkeleton, TableSkeleton } from "../components/Skeleton";
 import {
   createQuestion,
   deleteQuestion,
@@ -48,6 +52,8 @@ export default function ManageQuestions() {
   const [csvImporting, setCsvImporting] = useState(false);
   const [selectedQuestionIds, setSelectedQuestionIds] = useState([]);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [deletingQuestionId, setDeletingQuestionId] = useState(null);
   const [successMessage, setSuccessMessage] = useState("");
   const [questionSearch, setQuestionSearch] = useState("");
   const [questionRoleFilter, setQuestionRoleFilter] = useState("");
@@ -105,11 +111,16 @@ export default function ManageQuestions() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (isSaving) {
+      return;
+    }
+
     if (!selectedRoleId) {
       setError("Please select a role first.");
       return;
     }
 
+    setIsSaving(true);
     try {
       const payload = {
         ...questionForm,
@@ -131,6 +142,8 @@ export default function ManageQuestions() {
       console.error(err);
       setError(err.message || "Unable to save question.");
       showError(err.message || "Unable to save question.");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -162,6 +175,7 @@ export default function ManageQuestions() {
     }
 
     setIsDeleting(true);
+    setDeletingQuestionId(id);
     setSuccessMessage("");
     try {
       await deleteQuestion(id);
@@ -173,6 +187,7 @@ export default function ManageQuestions() {
       showError(err.message || "Unable to delete question.");
     } finally {
       setIsDeleting(false);
+      setDeletingQuestionId(null);
     }
   };
 
@@ -360,15 +375,16 @@ export default function ManageQuestions() {
 
   return (
     <div className="space-y-6">
-        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <Card>
           <h1 className="text-2xl font-bold text-slate-800">Manage Questions</h1>
           <p className="mt-2 text-slate-600">
             Choose a role, then add, edit, or delete questions for that role.
           </p>
-        </div>
+        </Card>
 
         <div className="grid gap-6 lg:grid-cols-[1fr_2fr]">
-          <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+          <Card>
+            {loadingRoles ? <FormSkeleton fields={6} /> : <>
             <div>
               <label className="block text-sm font-medium text-slate-700">Select Role</label>
               <select
@@ -416,6 +432,7 @@ export default function ManageQuestions() {
                   disabled={!csvFile || csvPreviewing}
                   className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300"
                 >
+                  {csvPreviewing && <LoadingSpinner className="mr-2 align-text-bottom" />}
                   {csvPreviewing ? "Preparing Preview..." : "Preview CSV"}
                 </button>
                 <button
@@ -424,6 +441,7 @@ export default function ManageQuestions() {
                   disabled={!csvPreviewRows.length || !csvCanImport || csvImporting || csvPreviewing}
                   className="rounded-xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-emerald-300"
                 >
+                  {csvImporting && <LoadingSpinner className="mr-2 align-text-bottom" />}
                   {csvImporting ? "Importing..." : "Import Questions"}
                 </button>
               </div>
@@ -487,21 +505,13 @@ export default function ManageQuestions() {
                           <td className="border-b px-3 py-2">{row.role}</td>
                           <td className="border-b px-3 py-2">{row.question}</td>
                           <td className="border-b px-3 py-2">
-                            <span
-                              className={`rounded-full px-2 py-1 text-xs font-medium ${
-                                row.status === "ready"
-                                  ? "bg-emerald-100 text-emerald-700"
-                                  : row.status === "duplicate"
-                                    ? "bg-amber-100 text-amber-700"
-                                    : "bg-red-100 text-red-700"
-                              }`}
-                            >
+                            <StatusBadge variant={row.status === "ready" ? "success" : row.status === "duplicate" ? "warning" : "error"}>
                               {row.status === "ready"
                                 ? "Ready"
                                 : row.status === "duplicate"
                                   ? "Duplicate"
                                   : "Invalid"}
-                            </span>
+                            </StatusBadge>
                             {row.reason && <span className="ml-2 text-xs text-slate-500">{row.reason}</span>}
                           </td>
                         </tr>
@@ -598,9 +608,11 @@ export default function ManageQuestions() {
                 <div className="flex gap-3">
                   <button
                     type="submit"
+                    disabled={isSaving}
                     className="rounded-xl bg-blue-600 px-6 py-3 text-white transition hover:bg-blue-700"
                   >
-                    {editingQuestionId ? "Update Question" : "Add Question"}
+                    {isSaving && <LoadingSpinner className="mr-2 align-text-bottom" />}
+                    {isSaving ? (editingQuestionId ? "Updating..." : "Saving...") : (editingQuestionId ? "Update Question" : "Add Question")}
                   </button>
                   {editingQuestionId && (
                     <button
@@ -614,9 +626,10 @@ export default function ManageQuestions() {
                 </div>
               </form>
             </div>
-          </div>
+            </>}
+          </Card>
 
-          <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+          <Card className="overflow-x-auto">
             <h2 className="text-xl font-semibold text-slate-800">Questions</h2>
 
             {successMessage && <p className="mt-3 text-sm text-emerald-600">{successMessage}</p>}
@@ -660,7 +673,7 @@ export default function ManageQuestions() {
             </div>
 
             {loadingQuestions ? (
-              <p className="mt-4 text-slate-500">Loading questions...</p>
+              <TableSkeleton columns={8} rows={5} />
             ) : questions.length === 0 ? (
               <EmptyState
                 icon={ClipboardList}
@@ -695,7 +708,7 @@ export default function ManageQuestions() {
                       className="rounded-lg bg-red-600 px-3 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-red-300"
                     >
                       {isDeleting
-                        ? "Deleting..."
+                        ? <><LoadingSpinner className="mr-2 align-text-bottom" />Deleting...</>
                         : `Delete Selected (${selectedQuestionIds.length})`}
                     </button>
                   </div>
@@ -756,7 +769,8 @@ export default function ManageQuestions() {
                             disabled={isDeleting || loadingQuestions}
                             className="rounded-lg bg-red-600 px-3 py-2 text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-red-300"
                           >
-                            Delete
+                            {deletingQuestionId === question.id && <LoadingSpinner className="mr-2 align-text-bottom" />}
+                            {deletingQuestionId === question.id ? "Deleting..." : "Delete"}
                           </button>
                         </div>
                       </td>
@@ -766,7 +780,7 @@ export default function ManageQuestions() {
                 </table>
               </>
             )}
-          </div>
+          </Card>
         </div>
     </div>
   );
