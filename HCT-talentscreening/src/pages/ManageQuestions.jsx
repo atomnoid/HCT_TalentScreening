@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { ClipboardList, Search } from "lucide-react";
+import EmptyState from "../components/EmptyState";
 import {
   createQuestion,
   deleteQuestion,
@@ -9,6 +11,7 @@ import {
   previewQuestionImport,
   updateQuestion,
 } from "../services/questionService";
+import { showError, showSuccess } from "../utils/toast";
 
 const defaultQuestionForm = {
   question: "",
@@ -123,9 +126,11 @@ export default function ManageQuestions() {
       setEditingQuestionId(null);
       await loadQuestions();
       setError("");
+      showSuccess(editingQuestionId ? "Question updated successfully." : "Question created successfully.");
     } catch (err) {
       console.error(err);
       setError(err.message || "Unable to save question.");
+      showError(err.message || "Unable to save question.");
     }
   };
 
@@ -161,9 +166,11 @@ export default function ManageQuestions() {
     try {
       await deleteQuestion(id);
       await loadQuestions();
+      showSuccess("Question deleted successfully.");
     } catch (err) {
       console.error(err);
       setError(err.message || "Unable to delete question.");
+      showError(err.message || "Unable to delete question.");
     } finally {
       setIsDeleting(false);
     }
@@ -228,9 +235,11 @@ export default function ManageQuestions() {
       setSuccessMessage(
         `${count} question${count === 1 ? "" : "s"} deleted successfully.`
       );
+      showSuccess(`${count} question${count === 1 ? "" : "s"} deleted successfully.`);
     } catch (err) {
       console.error(err);
       setError(err.message || "Unable to delete selected questions.");
+      showError(err.message || "Unable to delete selected questions.");
     } finally {
       setIsDeleting(false);
     }
@@ -324,9 +333,11 @@ export default function ManageQuestions() {
       setCsvImportSummary(result);
       setCsvCanImport(false);
       await loadQuestions();
+      showSuccess("CSV questions imported successfully.");
     } catch (err) {
       console.error(err);
       setCsvError(err.message || "Unable to import questions.");
+      showError(err.message || "Unable to import questions.");
     } finally {
       setCsvImporting(false);
     }
@@ -348,9 +359,8 @@ export default function ManageQuestions() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 p-6">
-      <div className="mx-auto max-w-6xl space-y-6">
-        <div className="bg-white rounded-2xl shadow p-6">
+    <div className="space-y-6">
+        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
           <h1 className="text-2xl font-bold text-slate-800">Manage Questions</h1>
           <p className="mt-2 text-slate-600">
             Choose a role, then add, edit, or delete questions for that role.
@@ -358,7 +368,7 @@ export default function ManageQuestions() {
         </div>
 
         <div className="grid gap-6 lg:grid-cols-[1fr_2fr]">
-          <div className="bg-white rounded-2xl shadow p-6">
+          <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
             <div>
               <label className="block text-sm font-medium text-slate-700">Select Role</label>
               <select
@@ -462,7 +472,7 @@ export default function ManageQuestions() {
                 <div className="mt-4 overflow-x-auto">
                   <h3 className="text-sm font-semibold text-slate-700">Preview</h3>
                   <table className="mt-3 w-full text-left text-sm text-slate-700">
-                    <thead>
+                    <thead className="sticky top-0 z-10 bg-white shadow-sm">
                       <tr>
                         <th className="border-b px-3 py-2 font-medium">Row</th>
                         <th className="border-b px-3 py-2 font-medium">Role</th>
@@ -472,7 +482,7 @@ export default function ManageQuestions() {
                     </thead>
                     <tbody>
                       {csvPreviewRows.map((row) => (
-                        <tr key={row.rowNumber} className="odd:bg-slate-50">
+                        <tr key={row.rowNumber} className="odd:bg-slate-50 hover:bg-slate-100">
                           <td className="border-b px-3 py-2">{row.rowNumber}</td>
                           <td className="border-b px-3 py-2">{row.role}</td>
                           <td className="border-b px-3 py-2">{row.question}</td>
@@ -606,7 +616,7 @@ export default function ManageQuestions() {
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl shadow p-6 overflow-x-auto">
+          <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
             <h2 className="text-xl font-semibold text-slate-800">Questions</h2>
 
             {successMessage && <p className="mt-3 text-sm text-emerald-600">{successMessage}</p>}
@@ -652,9 +662,17 @@ export default function ManageQuestions() {
             {loadingQuestions ? (
               <p className="mt-4 text-slate-500">Loading questions...</p>
             ) : questions.length === 0 ? (
-              <p className="mt-4 text-slate-500">No questions found.</p>
+              <EmptyState
+                icon={ClipboardList}
+                title="No questions found"
+                description="Add questions to start building a quiz for this role."
+              />
             ) : filteredQuestions.length === 0 ? (
-              <p className="mt-4 text-slate-500">No questions found.</p>
+              <EmptyState
+                icon={Search}
+                title="No matching questions"
+                description="Try adjusting your search or role filter."
+              />
             ) : (
               <>
                 <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-slate-50 p-4">
@@ -683,8 +701,8 @@ export default function ManageQuestions() {
                   </div>
                 </div>
 
-                <table className="mt-4 w-full text-left text-sm text-slate-700">
-                  <thead>
+                <table className="mt-4 min-w-max w-full text-left text-sm text-slate-700">
+                  <thead className="sticky top-0 z-10 bg-white shadow-sm">
                     <tr>
                     <th className="border-b px-4 py-3 font-medium">
                       <input
@@ -706,7 +724,7 @@ export default function ManageQuestions() {
                 </thead>
                 <tbody>
                   {filteredQuestions.map((question) => (
-                    <tr key={question.id} className="odd:bg-slate-50">
+                    <tr key={question.id} className="odd:bg-slate-50 hover:bg-slate-100">
                       <td className="border-b px-4 py-3">
                         <input
                           type="checkbox"
@@ -750,7 +768,6 @@ export default function ManageQuestions() {
             )}
           </div>
         </div>
-      </div>
     </div>
   );
 }
