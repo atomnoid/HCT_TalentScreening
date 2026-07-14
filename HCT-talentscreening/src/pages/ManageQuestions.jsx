@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import {
   createQuestion,
   deleteQuestion,
+  deleteQuestionsByIds,
   getQuestionsByRole,
   getRoles,
   importQuestionsFromPreview,
@@ -42,6 +43,9 @@ export default function ManageQuestions() {
   const [csvError, setCsvError] = useState("");
   const [csvPreviewing, setCsvPreviewing] = useState(false);
   const [csvImporting, setCsvImporting] = useState(false);
+  const [selectedQuestionIds, setSelectedQuestionIds] = useState([]);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
 
   // Load roles once on mount for the role selector
   useEffect(() => {
@@ -63,6 +67,7 @@ export default function ManageQuestions() {
   const loadQuestions = async (roleId) => {
     if (!roleId) {
       setQuestions([]);
+      setSelectedQuestionIds([]);
       return;
     }
 
@@ -70,6 +75,9 @@ export default function ManageQuestions() {
     try {
       const data = await getQuestionsByRole(roleId);
       setQuestions(data);
+      setSelectedQuestionIds((previousIds) =>
+        previousIds.filter((id) => data.some((question) => question.id === id))
+      );
     } catch (err) {
       console.error(err);
       setError(err.message || "Unable to load questions.");
@@ -84,6 +92,8 @@ export default function ManageQuestions() {
     setEditingQuestionId(null);
     setQuestionForm(defaultQuestionForm);
     setError("");
+    setSuccessMessage("");
+    setSelectedQuestionIds([]);
     await loadQuestions(roleId);
   };
 
@@ -141,18 +151,87 @@ export default function ManageQuestions() {
 
   // Delete a question after user confirmation and reload list
   const handleDelete = async (id) => {
+    if (isDeleting || loadingQuestions) {
+      return;
+    }
+
     const confirmed = window.confirm("Delete this question?");
 
     if (!confirmed) {
       return;
     }
 
+    setIsDeleting(true);
+    setSuccessMessage("");
     try {
       await deleteQuestion(id);
       await loadQuestions(selectedRoleId);
     } catch (err) {
       console.error(err);
       setError(err.message || "Unable to delete question.");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleQuestionSelection = (id) => {
+    if (isDeleting) {
+      return;
+    }
+
+    setSelectedQuestionIds((previousIds) =>
+      previousIds.includes(id)
+        ? previousIds.filter((questionId) => questionId !== id)
+        : [...previousIds, id]
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (isDeleting) {
+      return;
+    }
+
+    setSelectedQuestionIds((previousIds) =>
+      previousIds.length === questions.length ? [] : questions.map((question) => question.id)
+    );
+  };
+
+  const handleClearSelection = () => {
+    if (!isDeleting) {
+      setSelectedQuestionIds([]);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (isDeleting || loadingQuestions || selectedQuestionIds.length === 0) {
+      return;
+    }
+
+    const count = selectedQuestionIds.length;
+    const confirmed = window.confirm(
+      `Delete ${count} selected question${count === 1 ? "" : "s"}?`
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setIsDeleting(true);
+    setError("");
+    setSuccessMessage("");
+
+    try {
+      await deleteQuestionsByIds(selectedQuestionIds);
+      setSelectedQuestionIds([]);
+      await loadQuestions(selectedRoleId);
+      setSuccessMessage(
+        `${count} question${count === 1 ? "" : "s"} deleted successfully.`
+      );
+    } catch (err) {
+      console.error(err);
+      setError(err.message || "Unable to delete selected questions.");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -161,6 +240,9 @@ export default function ManageQuestions() {
     setQuestionForm(defaultQuestionForm);
     setError("");
   };
+
+  const allQuestionsSelected =
+    questions.length > 0 && selectedQuestionIds.length === questions.length;
 
   const handleCsvFileChange = (e) => {
     const selectedFile = e.target.files?.[0] ?? null;
@@ -265,6 +347,7 @@ export default function ManageQuestions() {
               <select
                 value={selectedRoleId}
                 onChange={handleRoleChange}
+                disabled={isDeleting}
                 className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
               >
                 <option value="">Choose a role</option>
@@ -509,6 +592,8 @@ export default function ManageQuestions() {
           <div className="bg-white rounded-2xl shadow p-6 overflow-x-auto">
             <h2 className="text-xl font-semibold text-slate-800">Questions</h2>
 
+            {successMessage && <p className="mt-3 text-sm text-emerald-600">{successMessage}</p>}
+
             {loadingQuestions ? (
               <p className="mt-4 text-slate-500">Loading questions...</p>
             ) : !selectedRoleId ? (
@@ -516,9 +601,45 @@ export default function ManageQuestions() {
             ) : questions.length === 0 ? (
               <p className="mt-4 text-slate-500">No questions found for this role.</p>
             ) : (
-              <table className="mt-4 w-full text-left text-sm text-slate-700">
-                <thead>
-                  <tr>
+              <>
+                <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-slate-50 p-4">
+                  <p className="font-medium text-slate-700">
+                    {selectedQuestionIds.length} Question{selectedQuestionIds.length === 1 ? "" : "s"} Selected
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={handleClearSelection}
+                      disabled={selectedQuestionIds.length === 0 || isDeleting || loadingQuestions}
+                      className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      Clear Selection
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleBulkDelete}
+                      disabled={selectedQuestionIds.length === 0 || isDeleting || loadingQuestions}
+                      className="rounded-lg bg-red-600 px-3 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-red-300"
+                    >
+                      {isDeleting
+                        ? "Deleting..."
+                        : `Delete Selected (${selectedQuestionIds.length})`}
+                    </button>
+                  </div>
+                </div>
+
+                <table className="mt-4 w-full text-left text-sm text-slate-700">
+                  <thead>
+                    <tr>
+                    <th className="border-b px-4 py-3 font-medium">
+                      <input
+                        type="checkbox"
+                        checked={allQuestionsSelected}
+                        onChange={handleSelectAll}
+                        disabled={isDeleting || loadingQuestions}
+                        aria-label="Select all questions"
+                      />
+                    </th>
                     <th className="border-b px-4 py-3 font-medium">Question</th>
                     <th className="border-b px-4 py-3 font-medium">A</th>
                     <th className="border-b px-4 py-3 font-medium">B</th>
@@ -531,6 +652,15 @@ export default function ManageQuestions() {
                 <tbody>
                   {questions.map((question) => (
                     <tr key={question.id} className="odd:bg-slate-50">
+                      <td className="border-b px-4 py-3">
+                        <input
+                          type="checkbox"
+                          checked={selectedQuestionIds.includes(question.id)}
+                          onChange={() => handleQuestionSelection(question.id)}
+                          disabled={isDeleting || loadingQuestions}
+                          aria-label={`Select question: ${question.question}`}
+                        />
+                      </td>
                       <td className="border-b px-4 py-3">{question.question}</td>
                       <td className="border-b px-4 py-3">{question.option_a}</td>
                       <td className="border-b px-4 py-3">{question.option_b}</td>
@@ -542,14 +672,16 @@ export default function ManageQuestions() {
                           <button
                             type="button"
                             onClick={() => handleEdit(question)}
-                            className="rounded-lg bg-blue-600 px-3 py-2 text-white hover:bg-blue-700"
+                            disabled={isDeleting || loadingQuestions}
+                            className="rounded-lg bg-blue-600 px-3 py-2 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300"
                           >
                             Edit
                           </button>
                           <button
                             type="button"
                             onClick={() => handleDelete(question.id)}
-                            className="rounded-lg bg-red-600 px-3 py-2 text-white hover:bg-red-700"
+                            disabled={isDeleting || loadingQuestions}
+                            className="rounded-lg bg-red-600 px-3 py-2 text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-red-300"
                           >
                             Delete
                           </button>
@@ -558,7 +690,8 @@ export default function ManageQuestions() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+                </table>
+              </>
             )}
           </div>
         </div>
