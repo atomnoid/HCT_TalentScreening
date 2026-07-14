@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import Card from "../components/Card";
 
 // Simple HR dashboard with four actions: manage roles/questions, view results, logout
 export default function HRDashboard() {
@@ -6,7 +7,7 @@ export default function HRDashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+      <Card>
         <h2 className="text-2xl font-bold text-slate-900">HR Dashboard</h2>
         <p className="mt-2 text-slate-600">Manage roles, questions, and assessment results.</p>
 
@@ -35,7 +36,7 @@ export default function HRDashboard() {
             View Results
           </button>
         </div>
-      </div>
+      </Card>
     </div>
   );
 }
