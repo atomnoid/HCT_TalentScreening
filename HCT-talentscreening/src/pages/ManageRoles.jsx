@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import { UsersRound } from "lucide-react";
 import EmptyState from "../components/EmptyState";
+import Card from "../components/Card";
+import LoadingSpinner from "../components/LoadingSpinner";
+import StatusBadge from "../components/StatusBadge";
+import { FormSkeleton, TableSkeleton } from "../components/Skeleton";
 import { createRole, deactivateRole, activateRole, getRoles, updateRole } from "../services/roleService";
 import { showError, showSuccess } from "../utils/toast";
 
@@ -14,6 +18,8 @@ export default function ManageRoles() {
     quiz_duration_minutes: "15",
   });
   const [editingRoleId, setEditingRoleId] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [processingRoleId, setProcessingRoleId] = useState(null);
 
   useEffect(() => {
     async function loadRoles() {
@@ -54,6 +60,8 @@ export default function ManageRoles() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (isSaving) return;
+
     const parsedDuration = Number(formData.quiz_duration_minutes);
 
     if (!Number.isFinite(parsedDuration) || parsedDuration <= 0) {
@@ -61,6 +69,7 @@ export default function ManageRoles() {
       return;
     }
 
+    setIsSaving(true);
     try {
       const payload = {
         name: formData.name.trim(),
@@ -82,6 +91,8 @@ export default function ManageRoles() {
       console.error(err);
       setError(err.message || "Unable to save role.");
       showError(err.message || "Unable to save role.");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -96,11 +107,13 @@ export default function ManageRoles() {
   };
 
   const handleDeactivate = async (id) => {
+    if (processingRoleId) return;
     const confirmed = window.confirm("Deactivate this role?");
     if (!confirmed) {
       return;
     }
 
+    setProcessingRoleId(id);
     try {
       await deactivateRole(id);
       await refreshRoles();
@@ -109,15 +122,19 @@ export default function ManageRoles() {
       console.error(err);
       setError(err.message || "Unable to deactivate role.");
       showError(err.message || "Unable to deactivate role.");
+    } finally {
+      setProcessingRoleId(null);
     }
   };
 
   const handleActivate = async (id) => {
+    if (processingRoleId) return;
     const confirmed = window.confirm("Activate this role?");
     if (!confirmed) {
       return;
     }
 
+    setProcessingRoleId(id);
     try {
       await activateRole(id);
       await refreshRoles();
@@ -126,6 +143,8 @@ export default function ManageRoles() {
       console.error(err);
       setError(err.message || "Unable to activate role.");
       showError(err.message || "Unable to activate role.");
+    } finally {
+      setProcessingRoleId(null);
     }
   };
 
@@ -137,21 +156,21 @@ export default function ManageRoles() {
 
   return (
     <div className="space-y-6">
-        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <Card>
           <h1 className="text-2xl font-bold text-slate-800">Manage Roles</h1>
           <p className="mt-2 text-slate-600">
             Add, update, or remove roles used by applicants.
           </p>
-        </div>
+        </Card>
 
         <div className="grid gap-6 lg:grid-cols-[1fr_2fr]">
-          <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+          <Card>
             <h2 className="text-xl font-semibold text-slate-800">
               {editingRoleId ? "Edit Role" : "Create Role"}
             </h2>
 
+            {loading ? <div className="mt-6"><FormSkeleton fields={3} /></div> : <>
             {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
-
             <form onSubmit={handleSubmit} className="mt-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700">Name</label>
@@ -197,9 +216,11 @@ export default function ManageRoles() {
               <div className="flex gap-3">
                 <button
                   type="submit"
+                  disabled={isSaving}
                   className="rounded-xl bg-blue-600 px-6 py-3 text-white transition hover:bg-blue-700"
                 >
-                  {editingRoleId ? "Update Role" : "Create Role"}
+                  {isSaving && <LoadingSpinner className="mr-2 align-text-bottom" />}
+                  {isSaving ? (editingRoleId ? "Updating..." : "Saving...") : (editingRoleId ? "Update Role" : "Create Role")}
                 </button>
                 {editingRoleId && (
                   <button
@@ -211,14 +232,14 @@ export default function ManageRoles() {
                   </button>
                 )}
               </div>
-            </form>
-          </div>
+            </form></>}
+          </Card>
 
-          <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+          <Card className="overflow-x-auto">
             <h2 className="text-xl font-semibold text-slate-800">Role List</h2>
 
             {loading ? (
-              <p className="mt-4 text-slate-500">Loading roles...</p>
+              <TableSkeleton columns={5} rows={5} />
             ) : roles.length === 0 ? (
               <EmptyState
                 icon={UsersRound}
@@ -247,21 +268,14 @@ export default function ManageRoles() {
                           {role.quiz_duration_minutes ?? "15"} min
                         </td>
                         <td className="border-b px-4 py-3">
-                          {isActive ? (
-                            <span className="inline-flex items-center rounded-md bg-green-100 px-2 py-1 text-xs font-semibold text-green-700 ring-1 ring-inset ring-green-600/20">
-                              Active
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center rounded-md bg-red-100 px-2 py-1 text-xs font-semibold text-red-700 ring-1 ring-inset ring-red-600/20">
-                              Inactive
-                            </span>
-                          )}
+                          <StatusBadge variant={isActive ? "active" : "inactive"}>{isActive ? "Active" : "Inactive"}</StatusBadge>
                         </td>
                         <td className="border-b px-4 py-3">
                           <div className="flex gap-2">
                             <button
                               type="button"
                               onClick={() => handleEdit(role)}
+                              disabled={Boolean(processingRoleId)}
                               className="rounded-lg bg-blue-600 px-3 py-2 text-white hover:bg-blue-700"
                             >
                               Edit
@@ -270,17 +284,21 @@ export default function ManageRoles() {
                               <button
                                 type="button"
                                 onClick={() => handleDeactivate(role.id)}
+                                disabled={Boolean(processingRoleId)}
                                 className="rounded-lg bg-yellow-600 px-3 py-2 text-white hover:bg-yellow-700"
                               >
-                                Deactivate
+                                {processingRoleId === role.id && <LoadingSpinner className="mr-2 align-text-bottom" />}
+                                {processingRoleId === role.id ? "Deactivating..." : "Deactivate"}
                               </button>
                             ) : (
                               <button
                                 type="button"
                                 onClick={() => handleActivate(role.id)}
+                                disabled={Boolean(processingRoleId)}
                                 className="rounded-lg bg-emerald-600 px-3 py-2 text-white hover:bg-emerald-700"
                               >
-                                Activate
+                                {processingRoleId === role.id && <LoadingSpinner className="mr-2 align-text-bottom" />}
+                                {processingRoleId === role.id ? "Activating..." : "Activate"}
                               </button>
                             )}
                           </div>
@@ -291,7 +309,7 @@ export default function ManageRoles() {
                 </tbody>
               </table>
             )}
-          </div>
+          </Card>
         </div>
     </div>
   );
