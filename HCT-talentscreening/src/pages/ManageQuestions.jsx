@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import { useBlocker } from "react-router-dom";
 import { ClipboardList, Search } from "lucide-react";
 import EmptyState from "../components/EmptyState";
 import Card from "../components/Card";
@@ -59,6 +60,50 @@ export default function ManageQuestions() {
   const [successMessage, setSuccessMessage] = useState("");
   const [questionSearch, setQuestionSearch] = useState("");
   const [questionRoleFilter, setQuestionRoleFilter] = useState("");
+  const [originalData, setOriginalData] = useState(null);
+  const firstInputRef = useRef(null);
+  const tableRef = useRef(null);
+
+  const hasChanges = Boolean(editingQuestionId) && Boolean(originalData) && (
+    questionForm.question !== originalData.question ||
+    questionForm.option_a !== originalData.option_a ||
+    questionForm.option_b !== originalData.option_b ||
+    questionForm.option_c !== originalData.option_c ||
+    questionForm.option_d !== originalData.option_d ||
+    questionForm.correct_option !== originalData.correct_option
+  );
+
+  const blocker = useBlocker(
+    ({ currentLocation, nextLocation }) =>
+      hasChanges && currentLocation.pathname !== nextLocation.pathname
+  );
+
+  useEffect(() => {
+    if (blocker.state === "blocked") {
+      const confirmLeave = window.confirm(
+        "You have unsaved changes. Are you sure you want to leave?"
+      );
+      if (confirmLeave) {
+        blocker.proceed();
+      } else {
+        blocker.reset();
+      }
+    }
+  }, [blocker]);
+
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (hasChanges) {
+        e.preventDefault();
+        e.returnValue = "You have unsaved changes. Are you sure you want to leave?";
+        return e.returnValue;
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [hasChanges]);
 
   // Load roles once on mount for the role selector
   useEffect(() => {
@@ -98,6 +143,7 @@ export default function ManageQuestions() {
     setSelectedRoleId(roleId);
     setEditingQuestionId(null);
     setQuestionForm(defaultQuestionForm);
+    setOriginalData(null);
     setError("");
     setSuccessMessage("");
     setSelectedQuestionIds([]);
@@ -129,7 +175,8 @@ export default function ManageQuestions() {
         role_id: selectedRoleId,
       };
 
-      if (editingQuestionId) {
+      const isEdit = Boolean(editingQuestionId);
+      if (isEdit) {
         await updateQuestion(editingQuestionId, payload);
       } else {
         await createQuestion(payload);
@@ -137,9 +184,16 @@ export default function ManageQuestions() {
 
       setQuestionForm(defaultQuestionForm);
       setEditingQuestionId(null);
+      setOriginalData(null);
       await loadQuestions();
       setError("");
-      showSuccess(editingQuestionId ? "Question updated successfully." : "Question created successfully.");
+      showSuccess(isEdit ? "Question updated successfully." : "Question created successfully.");
+
+      if (!isEdit) {
+        setTimeout(() => {
+          firstInputRef.current?.focus();
+        }, 0);
+      }
     } catch (err) {
       console.error(err);
       setError(err.message || "Unable to save question.");
@@ -153,14 +207,16 @@ export default function ManageQuestions() {
   const handleEdit = (question) => {
     // Populate the form for editing the selected question
     setEditingQuestionId(question.id);
-    setQuestionForm({
+    const initialForm = {
       question: question.question,
       option_a: question.option_a,
       option_b: question.option_b,
       option_c: question.option_c,
       option_d: question.option_d,
       correct_option: question.correct_option,
-    });
+    };
+    setQuestionForm(initialForm);
+    setOriginalData(initialForm);
     setError("");
   };
 
@@ -170,13 +226,22 @@ export default function ManageQuestions() {
       return;
     }
 
+    const scrollY = window.scrollY;
     setIsDeleting(true);
     setDeletingQuestionId(id);
     setSuccessMessage("");
     try {
       await deleteQuestion(id);
+      setSelectedQuestionIds((prev) => prev.filter((questionId) => questionId !== id));
       await loadQuestions();
       showSuccess("Question deleted successfully.");
+      
+      // Preserve scroll position
+      window.scrollTo(0, scrollY);
+      // Return focus naturally to the table
+      setTimeout(() => {
+        tableRef.current?.focus();
+      }, 0);
     } catch (err) {
       console.error(err);
       setError(err.message || "Unable to delete question.");
@@ -228,6 +293,7 @@ export default function ManageQuestions() {
     }
 
     const count = selectedQuestionIds.length;
+    const scrollY = window.scrollY;
 
     setIsDeleting(true);
     setError("");
@@ -241,6 +307,13 @@ export default function ManageQuestions() {
         `${count} question${count === 1 ? "" : "s"} deleted successfully.`
       );
       showSuccess(`${count} question${count === 1 ? "" : "s"} deleted successfully.`);
+      
+      // Preserve scroll position
+      window.scrollTo(0, scrollY);
+      // Return focus naturally to the table
+      setTimeout(() => {
+        tableRef.current?.focus();
+      }, 0);
     } catch (err) {
       console.error(err);
       setError(err.message || "Unable to delete selected questions.");
@@ -254,6 +327,7 @@ export default function ManageQuestions() {
   const handleCancelEdit = () => {
     setEditingQuestionId(null);
     setQuestionForm(defaultQuestionForm);
+    setOriginalData(null);
     setError("");
   };
 
@@ -525,6 +599,7 @@ export default function ManageQuestions() {
                 <div>
                   <label className="block text-sm font-medium text-slate-700">Question <span className="text-red-600">*</span></label>
                   <textarea
+                    ref={firstInputRef}
                     name="question"
                     value={questionForm.question}
                     onChange={handleChange}
@@ -681,8 +756,8 @@ export default function ManageQuestions() {
             ) : filteredQuestions.length === 0 ? (
               <EmptyState
                 icon={Search}
-                title="No matching questions"
-                description="Try adjusting your search or role filter."
+                title="No questions match your search."
+                description="Try changing your search term or selected filter."
               />
             ) : (
               <>
@@ -712,7 +787,7 @@ export default function ManageQuestions() {
                   </div>
                 </div>
 
-                <table className="mt-4 min-w-max w-full text-left text-sm text-slate-700">
+                <table ref={tableRef} tabIndex="-1" className="mt-4 min-w-max w-full text-left text-sm text-slate-700 focus:outline-none">
                   <thead className="sticky top-0 z-10 bg-white shadow-sm">
                     <tr>
                     <th className="border-b px-4 py-3 font-medium">
