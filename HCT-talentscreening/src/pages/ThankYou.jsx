@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { logoutUser } from "../services/authService";
+import { showError } from "../utils/toast";
 
 export default function ThankYou() {
   const navigate = useNavigate();
@@ -10,7 +11,7 @@ export default function ThankYou() {
       navigate("/");
     } catch (err) {
       console.error(err);
-      alert(err.message);
+      showError(err.message || "Unable to log out.");
     }
   };
 
