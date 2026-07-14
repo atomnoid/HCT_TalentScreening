@@ -10,6 +10,7 @@ import Results from "./pages/Results";
 import ThankYou from "./pages/ThankYou";
 import ManageRoles from "./pages/ManageRoles";
 import ManageQuestions from "./pages/ManageQuestions";
+import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 import HRLayout from "./components/layout/HRLayout";
 
@@ -57,6 +58,7 @@ function App() {
           <Route path="/manage-roles" element={<ManageRoles />} />
           <Route path="/manage-questions" element={<ManageQuestions />} />
         </Route>
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   );
