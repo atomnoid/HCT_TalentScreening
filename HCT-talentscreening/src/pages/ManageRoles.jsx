@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import { useBlocker } from "react-router-dom";
 import { UsersRound } from "lucide-react";
 import EmptyState from "../components/EmptyState";
 import Card from "../components/Card";
@@ -22,6 +23,46 @@ export default function ManageRoles() {
   const [isSaving, setIsSaving] = useState(false);
   const [processingRoleId, setProcessingRoleId] = useState(null);
   const [confirmation, setConfirmation] = useState(null);
+  const [originalData, setOriginalData] = useState(null);
+  const firstInputRef = useRef(null);
+
+  const hasChanges = Boolean(editingRoleId) && Boolean(originalData) && (
+    formData.name !== originalData.name ||
+    formData.description !== originalData.description ||
+    String(formData.quiz_duration_minutes) !== String(originalData.quiz_duration_minutes)
+  );
+
+  const blocker = useBlocker(
+    ({ currentLocation, nextLocation }) =>
+      hasChanges && currentLocation.pathname !== nextLocation.pathname
+  );
+
+  useEffect(() => {
+    if (blocker.state === "blocked") {
+      const confirmLeave = window.confirm(
+        "You have unsaved changes. Are you sure you want to leave?"
+      );
+      if (confirmLeave) {
+        blocker.proceed();
+      } else {
+        blocker.reset();
+      }
+    }
+  }, [blocker]);
+
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (hasChanges) {
+        e.preventDefault();
+        e.returnValue = "You have unsaved changes. Are you sure you want to leave?";
+        return e.returnValue;
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [hasChanges]);
 
   useEffect(() => {
     async function loadRoles() {
@@ -79,7 +120,8 @@ export default function ManageRoles() {
         quiz_duration_minutes: parsedDuration,
       };
 
-      if (editingRoleId) {
+      const isEdit = Boolean(editingRoleId);
+      if (isEdit) {
         await updateRole(editingRoleId, payload);
       } else {
         await createRole(payload);
@@ -87,8 +129,15 @@ export default function ManageRoles() {
 
       setFormData({ name: "", description: "", quiz_duration_minutes: "15" });
       setEditingRoleId(null);
+      setOriginalData(null);
       await refreshRoles();
-      showSuccess(editingRoleId ? "Role updated successfully." : "Role created successfully.");
+      showSuccess(isEdit ? "Role updated successfully." : "Role created successfully.");
+
+      if (!isEdit) {
+        setTimeout(() => {
+          firstInputRef.current?.focus();
+        }, 0);
+      }
     } catch (err) {
       console.error(err);
       setError(err.message || "Unable to save role.");
@@ -100,11 +149,13 @@ export default function ManageRoles() {
 
   const handleEdit = (role) => {
     setEditingRoleId(role.id);
-    setFormData({
+    const initialData = {
       name: role.name,
       description: role.description || "",
-      quiz_duration_minutes: role.quiz_duration_minutes ?? "15",
-    });
+      quiz_duration_minutes: String(role.quiz_duration_minutes ?? "15"),
+    };
+    setFormData(initialData);
+    setOriginalData(initialData);
     setError("");
   };
 
@@ -147,6 +198,7 @@ export default function ManageRoles() {
   const handleCancelEdit = () => {
     setEditingRoleId(null);
     setFormData({ name: "", description: "", quiz_duration_minutes: "15" });
+    setOriginalData(null);
     setError("");
   };
 
@@ -172,6 +224,7 @@ export default function ManageRoles() {
               <div>
                 <label className="block text-sm font-medium text-slate-700">Name <span className="text-red-600">*</span></label>
                 <input
+                  ref={firstInputRef}
                   type="text"
                   name="name"
                   value={formData.name}
