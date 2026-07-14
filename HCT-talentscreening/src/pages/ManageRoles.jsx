@@ -167,16 +167,18 @@ export default function ManageRoles() {
 
             {loading ? <div className="mt-6"><FormSkeleton fields={3} /></div> : <>
             {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+            <p className="mt-3 text-sm text-slate-500"><span className="text-red-600">*</span> Required fields</p>
             <form onSubmit={handleSubmit} className="mt-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700">Name</label>
+                <label className="block text-sm font-medium text-slate-700">Name <span className="text-red-600">*</span></label>
                 <input
                   type="text"
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
                   required
-                  className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                  aria-required="true"
+                  className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 invalid:border-red-500 invalid:ring-2 invalid:ring-red-100"
                 />
               </div>
 
@@ -193,7 +195,7 @@ export default function ManageRoles() {
 
               <div>
                 <label className="block text-sm font-medium text-slate-700">
-                  Quiz Duration (Minutes)
+                  Quiz Duration (Minutes) <span className="text-red-600">*</span>
                 </label>
                 <input
                   type="number"
@@ -202,7 +204,8 @@ export default function ManageRoles() {
                   value={formData.quiz_duration_minutes}
                   onChange={handleChange}
                   required
-                  className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                  aria-required="true"
+                  className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 invalid:border-red-500 invalid:ring-2 invalid:ring-red-100"
                 />
                 <p className="mt-2 text-sm text-slate-500">
                   This value controls how long the quiz stays active for this role.
