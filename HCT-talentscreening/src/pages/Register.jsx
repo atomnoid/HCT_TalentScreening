@@ -3,6 +3,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { getRoles } from "../services/roleService";
 import { registerUser } from "../services/authService";
+import { showError, showSuccess } from "../utils/toast";
 
 export default function Register() {
   const navigate = useNavigate();
@@ -51,12 +52,12 @@ export default function Register() {
     try {
       await registerUser(formData);
 
-      alert("Registration Successful!");
+      showSuccess("Registration successful.");
 
       navigate("/");
     } catch (err) {
       console.error(err);
-      alert(err.message);
+      showError(err.message || "Unable to register.");
     }
   };
 
