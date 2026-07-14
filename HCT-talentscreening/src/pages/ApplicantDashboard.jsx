@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getCurrentProfile, logoutUser } from "../services/authService";
 import { getSubmissionByApplicant } from "../services/submissionService";
+import { showError } from "../utils/toast";
 
 export default function ApplicantDashboard() {
   const navigate = useNavigate();
@@ -37,7 +38,7 @@ export default function ApplicantDashboard() {
       navigate("/");
     } catch (err) {
       console.error(err);
-      alert(err.message);
+      showError(err.message || "Unable to log out.");
     }
   };
 
