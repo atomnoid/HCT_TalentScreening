@@ -8,9 +8,15 @@ import { getQuestions } from "../services/questionService";
 import { getSubmissions } from "../services/submissionService";
 import { getApplicants } from "../services/authService";
 
-function StatCard({ title, value, icon: Icon, colorClass, loading }) {
-  return (
-    <Card className="relative overflow-hidden transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
+function StatCard({ title, value, icon: Icon, colorClass, loading, onClick }) {
+  const card = (
+    <Card
+      className={`relative overflow-hidden transition-all duration-300 ${
+        onClick
+          ? "hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md"
+          : "hover:-translate-y-0.5 hover:shadow-md"
+      }`}
+    >
       <div className="flex items-center gap-4">
         <div className={`rounded-xl p-3 ${colorClass}`}>
           <Icon className="h-6 w-6" aria-hidden="true" />
@@ -23,6 +29,27 @@ function StatCard({ title, value, icon: Icon, colorClass, loading }) {
         </div>
       </div>
     </Card>
+  );
+
+  if (!onClick) {
+    return card;
+  }
+
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={onClick}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onClick();
+        }
+      }}
+      className="cursor-pointer rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+    >
+      {card}
+    </div>
   );
 }
 
@@ -117,6 +144,7 @@ export default function HRDashboard() {
           icon={Users}
           colorClass="bg-blue-50 text-blue-600"
           loading={loading}
+          onClick={() => navigate("/manage-roles")}
         />
         <StatCard
           title="Active Roles"
@@ -124,6 +152,7 @@ export default function HRDashboard() {
           icon={CheckSquare}
           colorClass="bg-emerald-50 text-emerald-600"
           loading={loading}
+          onClick={() => navigate("/manage-roles")}
         />
         <StatCard
           title="Total Questions"
@@ -131,6 +160,7 @@ export default function HRDashboard() {
           icon={ClipboardList}
           colorClass="bg-indigo-50 text-indigo-600"
           loading={loading}
+          onClick={() => navigate("/manage-questions")}
         />
         <StatCard
           title="Total Submissions"
