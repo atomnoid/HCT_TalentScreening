@@ -17,7 +17,7 @@ function SidebarBrand({ showSubtitle = true }) {
       <img
         src="/hct-logo.png"
         alt="Hell Craft Technologies"
-        className="h-9 w-auto max-w-[2.25rem] shrink-0 object-contain"
+        className="h-9 w-9 shrink-0 rounded-lg object-contain"
       />
       <div className="min-w-0">
         <p className="font-semibold text-slate-900">Talent Screening</p>
