@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { ClipboardList, LayoutDashboard, LogOut, Menu, ShieldCheck, UsersRound, X } from "lucide-react";
-import { getCurrentProfile, logoutUser } from "../../services/authService";
+import { ClipboardList, LayoutDashboard, LogOut, Menu, ShieldCheck, User, UsersRound, X } from "lucide-react";
+import { logoutUser } from "../../services/authService";
 import { showError } from "../../utils/toast";
 
 const navigationItems = [
@@ -10,6 +10,22 @@ const navigationItems = [
   { label: "Manage Questions", path: "/manage-questions", icon: ClipboardList },
   { label: "Results", path: "/results", icon: ShieldCheck },
 ];
+
+function SidebarBrand({ showSubtitle = true }) {
+  return (
+    <div className="flex items-center gap-3">
+      <img
+        src="/hct-logo.png"
+        alt="Hell Craft Technologies"
+        className="h-9 w-auto max-w-[2.25rem] shrink-0 object-contain"
+      />
+      <div className="min-w-0">
+        <p className="font-semibold text-slate-900">Talent Screening</p>
+        {showSubtitle && <p className="text-xs text-slate-500">HR Portal</p>}
+      </div>
+    </div>
+  );
+}
 
 function NavigationLinks({ onNavigate }) {
   return (
@@ -42,36 +58,45 @@ function NavigationLinks({ onNavigate }) {
 
 export default function HRLayout() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [userName, setUserName] = useState("HR User");
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const profileMenuRef = useRef(null);
   const location = useLocation();
   const navigate = useNavigate();
   const currentPage = navigationItems.find((item) => item.path === location.pathname);
   const pageTitle = currentPage?.label || "HR Portal";
 
   useEffect(() => {
-    async function loadProfile() {
-      try {
-        const profile = await getCurrentProfile();
-        setUserName(profile.full_name || "HR User");
-      } catch (err) {
-        console.error(err);
-      }
-    }
-
-    loadProfile();
-  }, []);
-
-  useEffect(() => {
     const handleEscape = (event) => {
       if (event.key === "Escape") {
         setIsDrawerOpen(false);
+        setIsProfileMenuOpen(false);
       }
     };
 
     window.addEventListener("keydown", handleEscape);
     return () => window.removeEventListener("keydown", handleEscape);
   }, []);
+
+  useEffect(() => {
+    if (!isProfileMenuOpen) {
+      return;
+    }
+
+    const handleClickOutside = (event) => {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target)) {
+        setIsProfileMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
+  }, [isProfileMenuOpen]);
 
   const handleLogout = async () => {
     if (isLoggingOut) {
@@ -87,6 +112,7 @@ export default function HRLayout() {
       showError(err.message || "Unable to log out.");
     } finally {
       setIsLoggingOut(false);
+      setIsProfileMenuOpen(false);
     }
   };
 
@@ -94,14 +120,8 @@ export default function HRLayout() {
     <div className="min-h-screen bg-slate-100 text-slate-800">
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 border-r border-slate-200 bg-white p-4 lg:block">
         <div className="flex h-full flex-col">
-          <div className="flex items-center gap-3 px-3 py-3">
-            <div className="rounded-lg bg-blue-600 p-2 text-white">
-              <ShieldCheck size={20} aria-hidden="true" />
-            </div>
-            <div>
-              <p className="font-semibold text-slate-900">Talent Screening</p>
-              <p className="text-xs text-slate-500">HR Portal</p>
-            </div>
+          <div className="px-3 py-3">
+            <SidebarBrand />
           </div>
 
           <div className="mt-8 flex-1">
@@ -137,12 +157,7 @@ export default function HRLayout() {
       >
         <div className="flex h-full flex-col">
           <div className="flex items-center justify-between px-3 py-3">
-            <div className="flex items-center gap-3">
-              <div className="rounded-lg bg-blue-600 p-2 text-white">
-                <ShieldCheck size={20} aria-hidden="true" />
-              </div>
-              <span className="font-semibold text-slate-900">Talent Screening</span>
-            </div>
+            <SidebarBrand showSubtitle={false} />
             <button
               type="button"
               aria-label="Close navigation menu"
@@ -187,16 +202,36 @@ export default function HRLayout() {
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
-              <span className="hidden text-sm text-slate-600 sm:block">{userName}</span>
+            <div ref={profileMenuRef} className="relative shrink-0">
               <button
                 type="button"
-                onClick={handleLogout}
-                disabled={isLoggingOut}
-                className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                aria-label="Open profile menu"
+                aria-haspopup="menu"
+                aria-expanded={isProfileMenuOpen}
+                onClick={() => setIsProfileMenuOpen((open) => !open)}
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-400 text-white transition-colors hover:bg-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               >
-                {isLoggingOut ? "Logging out..." : "Logout"}
+                <User size={20} strokeWidth={2.25} aria-hidden="true" />
               </button>
+
+              {isProfileMenuOpen && (
+                <div
+                  role="menu"
+                  aria-label="Profile menu"
+                  className="absolute right-0 z-50 mt-2 w-40 overflow-hidden rounded-lg border border-slate-200 bg-white py-1 shadow-lg"
+                >
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={handleLogout}
+                    disabled={isLoggingOut}
+                    className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm font-medium text-red-600 transition-colors hover:bg-red-50 focus:bg-red-50 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <LogOut size={16} aria-hidden="true" />
+                    <span>{isLoggingOut ? "Logging out..." : "Logout"}</span>
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </header>
