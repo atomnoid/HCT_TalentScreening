@@ -1,7 +1,6 @@
 <div align="center">
 
 # 🚀 Hell Craft Tech Talent Screening Platform
-
 ### Production-Ready Role-Based Online Assessment Platform
 
 A modern, secure and scalable Talent Screening Platform built for **Hell Craft Technologies** using **React, JavaScript, Tailwind CSS and Supabase**.
@@ -1136,3 +1135,358 @@ This prevents unexpected crashes and improves overall reliability.
 ✔ Scalable Codebase
 
 ✔ Beginner Friendly Structure
+
+# 🚀 Getting Started
+
+Follow the steps below to run the project locally.
+
+---
+
+## 1️⃣ Clone the Repository
+
+```bash
+git clone https://github.com/<your-username>/HCT_TalentScreening.git
+```
+
+---
+
+## 2️⃣ Navigate to the Project
+
+```bash
+cd HCT_TalentScreening
+```
+
+---
+
+## 3️⃣ Install Dependencies
+
+```bash
+npm install
+```
+
+---
+
+## 4️⃣ Configure Environment Variables
+
+Create a `.env` file in the project root.
+
+```env
+VITE_SUPABASE_URL=YOUR_SUPABASE_URL
+VITE_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
+```
+
+---
+
+## 5️⃣ Start Development Server
+
+```bash
+npm run dev
+```
+
+---
+
+## 6️⃣ Production Build
+
+```bash
+npm run build
+```
+
+---
+
+## 7️⃣ Preview Production Build
+
+```bash
+npm run preview
+```
+
+---
+
+# 🗂 Environment Variables
+
+The application currently requires the following variables.
+
+| Variable | Description |
+|----------|-------------|
+| VITE_SUPABASE_URL | Supabase Project URL |
+| VITE_SUPABASE_ANON_KEY | Supabase Anonymous API Key |
+
+---
+
+# 🌐 Deployment
+
+The project is deployment-ready and can be hosted on modern frontend platforms.
+
+### Recommended Platforms
+
+- Vercel
+- Netlify
+
+---
+
+### Backend
+
+Supabase
+
+- Authentication
+- PostgreSQL Database
+- Row Level Security
+- API Layer
+
+---
+
+# 🧪 Testing Checklist
+
+Before deploying, verify the following.
+
+## Authentication
+
+- Login
+- Register
+- Logout
+- Session Persistence
+
+---
+
+## HR Module
+
+- Dashboard Statistics
+- Create Role
+- Update Role
+- Activate Role
+- Deactivate Role
+- Search Roles
+
+---
+
+## Question Management
+
+- Create Question
+- Update Question
+- Delete Question
+- Bulk Delete
+- Search
+- Filter
+- CSV Import
+
+---
+
+## Applicant Module
+
+- Registration
+- Login
+- Instructions
+- Quiz
+- Timer
+- Submission
+- Thank You Page
+
+---
+
+## Results
+
+- Search
+- Filter
+- CSV Export
+- Percentage Calculation
+
+---
+
+## UI
+
+- Mobile Responsive
+- Desktop Responsive
+- Loading States
+- Empty States
+- Confirmation Dialogs
+- Toast Notifications
+
+---
+
+# 📊 Technical Highlights
+
+## Frontend
+
+- React 19
+- JavaScript (ES2023)
+- Tailwind CSS
+- React Router
+- React Hot Toast
+- Lucide React
+
+---
+
+## Backend
+
+- Supabase Authentication
+- Supabase PostgreSQL
+
+---
+
+## Architecture
+
+- Layered Architecture
+- Service Layer Pattern
+- Component-Based Design
+- Protected Routes
+- RBAC
+- RLS
+
+---
+
+# 🛣 Future Improvements
+
+Potential future enhancements include:
+
+- HR Analytics Dashboard
+- Question Difficulty Levels
+- Candidate Ranking System
+- AI-Based Resume Screening
+- AI Question Generation
+- Email Notifications
+- Multi-Round Assessments
+- Interview Scheduling
+- Audit Logs
+- Advanced Reports
+- Pagination
+- Dark Mode
+- Multi-Tenant Support
+- Internationalization (i18n)
+- Role Permissions Management
+
+---
+
+# 🤝 Contributing
+
+Contributions are welcome.
+
+If you'd like to improve the project:
+
+1. Fork the repository.
+2. Create a new feature branch.
+
+```bash
+git checkout -b feature/your-feature
+```
+
+3. Commit your changes.
+
+```bash
+git commit -m "Add new feature"
+```
+
+4. Push your branch.
+
+```bash
+git push origin feature/your-feature
+```
+
+5. Open a Pull Request.
+
+---
+
+# 📄 License
+
+This project is intended for educational and demonstration purposes.
+
+Feel free to use it for learning, portfolio showcasing, and experimentation.
+
+---
+
+# 👨‍💻 Developer
+
+**Ayush**
+
+BCA Student | Full Stack Developer
+
+Tech Stack:
+
+- React
+- JavaScript
+- Tailwind CSS
+- Node.js
+- Supabase
+- PostgreSQL
+- Git & GitHub
+
+---
+
+# 💡 Key Learnings
+
+Building this project provided hands-on experience with:
+
+- Designing scalable React applications
+- Implementing Role-Based Access Control (RBAC)
+- Working with Row Level Security (RLS)
+- Structuring applications using a Service Layer
+- Managing authentication with Supabase
+- Performing CRUD operations
+- Bulk database operations
+- CSV import and export workflows
+- Responsive dashboard development
+- Production-ready UI/UX practices
+- Component reusability
+- Error handling strategies
+- State management using React Hooks
+- Clean code principles
+
+---
+
+# ⭐ Why This Project?
+
+This project demonstrates the implementation of a modern recruitment assessment platform that emphasizes clean architecture, maintainability, security, and user experience.
+
+It showcases real-world software engineering concepts such as layered architecture, RBAC, RLS, reusable components, responsive design, service-oriented development, and production-ready workflows while remaining approachable for developers learning full-stack application development.
+
+---
+
+## 📸 Screenshots
+
+> Add screenshots of the following pages after deployment:
+
+- Login Page
+- Register Page
+- HR Dashboard
+- Manage Roles
+- Manage Questions
+- Results
+- Quiz Interface
+- Thank You Page
+
+---
+
+## 🙏 Acknowledgements
+
+Special thanks to the open-source community and the teams behind:
+
+- React
+- Vite
+- Tailwind CSS
+- Supabase
+- Lucide React
+- React Hot Toast
+
+Their tools made the development of this project possible.
+
+---
+
+# ⭐ Support
+
+If you found this project helpful:
+
+- Star the repository ⭐
+- Fork the project 🍴
+- Share feedback 💬
+
+Your support is greatly appreciated.
+
+---
+
+<div align="center">
+
+## 🚀 HCT Talent Screening Platform
+
+**Built with ❤️ using React, Supabase, and Tailwind CSS**
+
+*A production-ready role-based recruitment assessment platform.*
+
+</div>
